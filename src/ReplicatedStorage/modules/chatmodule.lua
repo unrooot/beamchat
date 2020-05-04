@@ -101,9 +101,9 @@ lib.search = function()
 				t.TextTransparency = i == 1 and 0 or 0.2
 			end
 
-			resultsFrame.Size = u2(0, txt:GetTextSize(longest, 14, Enum.Font.GothamSemibold, Vector2.new(185, 20)).X + 10, 0, #matches*26)
+			resultsFrame:TweenSize(u2(0, txt:GetTextSize(longest, 14, Enum.Font.GothamSemibold, Vector2.new(185, 20)).X + 10, 0, #matches*26), "Out", "Quart", 0.25, true)
 
-			lib.searching = {type = "username", selected = 1, results = matches}
+			lib.searching = {type = "username", selected = 1, results = matches, last = lastWord}
 		elseif #matches == 1 then
 			chatbar.input.Text = string.sub(input, 0, #input - #lastWord) .. matches[1] .. " "
 		end

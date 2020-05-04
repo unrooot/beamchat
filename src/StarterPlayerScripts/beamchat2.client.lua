@@ -36,8 +36,15 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 	if chatmodule.searching then
 		local res = chatbar:FindFirstChild("results")
 		if res then
-			res:TweenPosition(u2(0, chatbar.TextBounds.X, 0, 0), "Out", "Quart", 0.25, true)
+			res:TweenPosition(u2(0, chatbar.input.TextBounds.X, 0, 0), "Out", "Quart", 0.25, true)
 		end
+	end
+end)
+
+-- chatbar events
+chatbar.input.FocusLost:connect(function(enterPressed)
+	if enterPressed then
+		chatmodule.chatbar(true)
 	end
 end)
 
@@ -54,9 +61,9 @@ uis.InputBegan:connect(function(input, gpe)
 				if chatmodule.searching then
 					local cbInput = chatbar.input.Text
 					local type, selected, results, last = chatmodule.searching.type,
-														chatmodule.searching.selected,
-														chatmodule.searching.results,
-														chatmodule.searching.last
+						chatmodule.searching.selected,
+						chatmodule.searching.results,
+						chatmodule.searching.last
 
 					if type == "username" then
 						chatbar.input.Text = string.sub(cbInput, 0, #cbInput - #last) .. results[selected] .. " "
@@ -66,7 +73,7 @@ uis.InputBegan:connect(function(input, gpe)
 						--
 					end
 
-					chatbar.searching = nil
+					chatmodule.searching = nil
 
 					local res = chatbar:FindFirstChild("results")
 					if res then
@@ -74,8 +81,6 @@ uis.InputBegan:connect(function(input, gpe)
 						wait(0.25)
 						res:Destroy()
 					end
-				else
-					chatmodule.chatbar(true)
 				end
 			elseif input.KeyCode == Enum.KeyCode.Tab then
 				chatmodule.search()
@@ -87,13 +92,23 @@ uis.InputBegan:connect(function(input, gpe)
 						local direction = input.KeyCode == Enum.KeyCode.Up and -1 or 1
 						local selected, results = chatmodule.searching.selected, chatmodule.searching.results
 
+						-- the first time lua tables starting at 1 has bothered me
+						local position = 0
+
+						print(direction, selected, results, position)
+
 						if selected - direction == 0 then
 							chatmodule.searching.selected = #results
+							position = #results - 1
 						elseif selected + direction > #results then
 							chatmodule.searching.selected = 1
+							position = 0
+						else
+							chatmodule.searching.selected = chatmodule.searching.selected + direction
+							position = chatmodule.searching.selected - 1
 						end
 
-						res:WaitForChild("highlight"):TweenPosition(u2(26*selected), "Out", "Quart", 0.25, true)
+						res:WaitForChild("highlight"):TweenPosition(u2(0, 0, 0, 26*position), "Out", "Quart", 0.25, true)
 					end
 				end
 			end
