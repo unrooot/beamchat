@@ -1,6 +1,7 @@
 local lib = {}
 lib.chatbarToggle = false
 lib.searching = nil
+lib.emojiSearch = {}
 
 lib.chatHistory = {}
 lib.historyPosition = 0
@@ -17,6 +18,7 @@ local modules = beamchatRS:WaitForChild("modules")
 local remotes = beamchatRS:WaitForChild("remotes")
 
 local effects = require(modules:WaitForChild("effects"))
+local emoji = require(modules:WaitForChild("emoji"))
 
 local u2 = UDim2.new
 local c3 = Color3.fromRGB
@@ -116,7 +118,9 @@ lib.search = function()
 				chatbar.input.Text = string.sub(input, 0, #input - #lastWord) .. matches[1] .. " "
 			end
 		elseif string.sub(lastWord, 0, 1) == ":" then
-			print("searching emoji")
+			if lib.searching then
+
+			end
 		elseif string.sub(input, 0, 2) == "--" then
 			print("searching command")
 		end
