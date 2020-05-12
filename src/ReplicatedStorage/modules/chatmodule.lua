@@ -2,6 +2,10 @@ local lib = {}
 lib.chatbarToggle = false
 lib.searching = nil
 
+lib.chatHistory = {}
+lib.historyPosition = 0
+lib.chatCache = ""
+
 -- services
 local ts = game:GetService("TweenService")
 local txt = game:GetService("TextService")
@@ -40,7 +44,7 @@ lib.search = function()
 
 		if string.sub(input, 0, 2) ~= "--" and string.sub(lastWord, 0, 1) ~= ":" then
 			-- search for players
-			chatbar.input:ReleaseFocus(false)
+			chatbar.input:ReleaseFocus()
 
 			local matches = {}
 			for result in string.gmatch(input, "[^%s]+") do
@@ -141,45 +145,50 @@ lib.chatbar = function(sending)
 		lib.chatbarToggle = true
 
 		-- chatbar effects
-		chatbar.input.Active = true
 		effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.5})
-		effects.fade(chatbar.input, 0.25, {TextTransparency = 0})
+		effects.fade(chatbar.input, 0.25, {TextTransparency = 0, Active = true, Visible = true})
 		effects.fade(chatbar.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1, Active = false, Visible = false})
 		chatbar.label:TweenPosition(u2(0.025, 0, 0, 0), "Out", "Quart", 0.25, true)
 
-		game:GetService("RunService").RenderStepped:wait()
+		-- why doesn't it take the renderstepped wait pls?????????
+		wait()
 		chatbar.input:CaptureFocus()
 	else
 		lib.chatbarToggle = false
 		-- capture user input
 		local msg = chatbar.input.Text
 
-		if sending then
-			-- reset input if sending
-			chatbar.input.Text = ""
-		end
-
 		-- reset chatbar properties
-		chatbar.input.Active = false
 		effects.fade(chatbar, 0.25, {BackgroundTransparency = 1})
-		effects.fade(chatbar.input, 0.25, {TextTransparency = 1})
+		effects.fade(chatbar.input, 0.25, {TextTransparency = 1, Active = false, Visible = false})
 		effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.9, Active = true, Visible = true})
 		chatbar.label:TweenPosition(u2(), "Out", "Quart", 0.25, true)
 
-		local sanitized = lib.sanitize(msg)
-		if sanitized ~= nil then
-			print(sanitized)
+		lib.searching = nil
+
+		if sending then
+			-- reset input if sending
+			chatbar.input.Text = ""
+			local sanitized = lib.sanitize(msg)
+			if sanitized ~= nil then
+				-- she's good to go!!!!
+				table.insert(lib.chatHistory, sanitized)
+
+				lib.historyPosition = 0
+				lib.chatCache = ""
+
+				print(sanitized)
+			end
 		end
 
-		-- make the results disappear when focus is lost
-		--[[local res = chatbar:FindFirstChild("results")
+		local res = chatbar:FindFirstChild("results")
 		if res then
 			res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
 			wait(0.25)
 			res:Destroy()
-		end]]
+		end
 
-		chatbar.input:ReleaseFocus(false)
+		chatbar.input:ReleaseFocus()
 	end
 end
 

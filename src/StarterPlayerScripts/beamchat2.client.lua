@@ -79,7 +79,7 @@ local function finalizeSearch()
 		res:Destroy()
 	end
 
-	wait()
+	game:GetService("RunService").RenderStepped:wait()
 	chatbar.input:CaptureFocus()
 end
 
@@ -89,7 +89,7 @@ uis.InputBegan:connect(function(input, gpe)
 		if not gpe then
 			if input.KeyCode == Enum.KeyCode.Slash then
 				if not chatmodule.chatbarToggle then
-					wait()
+					game:GetService("RunService").RenderStepped:wait()
 					chatmodule.chatbar()
 				end
 			end
@@ -128,6 +128,33 @@ uis.InputBegan:connect(function(input, gpe)
 						effects.fade(res:WaitForChild("entries")[oldSelected], 0.25, {TextTransparency = 0.2})
 						res:WaitForChild("highlight"):TweenPosition(u2(0, 0, 0, 26*(chatmodule.searching.selected-1)), "Out", "Quart", 0.25, true)
 						effects.fade(res:WaitForChild("entries")[chatmodule.searching.selected], 0.25, {TextTransparency = 0})
+					end
+				else
+					if input.KeyCode == Enum.KeyCode.Up or input.KeyCode == Enum.KeyCode.Down then
+						local direction = input.KeyCode == Enum.KeyCode.Up and -1 or 1
+
+						if #chatmodule.chatHistory > 0 then
+							if chatmodule.historyPosition + direction < 0 then
+								if chatmodule.historyPosition ~= 1 then
+									chatmodule.chatCache = chatbar.input.Text
+									chatmodule.historyPosition = #chatmodule.chatHistory
+									chatbar.input.Text = chatmodule.chatHistory[chatmodule.historyPosition]
+									chatbar.input.CursorPosition = #chatbar.input.Text + 1
+								end
+							elseif chatmodule.historyPosition + direction > #chatmodule.chatHistory then
+								chatmodule.historyPosition = 0
+								chatbar.input.Text = chatmodule.chatCache
+								chatbar.input.CursorPosition = #chatbar.input.Text + 1
+							else
+								if chatmodule.historyPosition + direction ~= 0 then
+									if chatmodule.historyPosition ~= 0 then
+										chatmodule.historyPosition = chatmodule.historyPosition + direction
+										chatbar.input.Text = chatmodule.chatHistory[chatmodule.historyPosition]
+										chatbar.input.CursorPosition = #chatbar.input.Text + 1
+									end
+								end
+							end
+						end
 					end
 				end
 			end
