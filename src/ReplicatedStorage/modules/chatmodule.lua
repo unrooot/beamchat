@@ -171,6 +171,14 @@ lib.chatbar = function(sending)
 			print(sanitized)
 		end
 
+		-- make the results disappear when focus is lost
+		--[[local res = chatbar:FindFirstChild("results")
+		if res then
+			res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
+			wait(0.25)
+			res:Destroy()
+		end]]
+
 		chatbar.input:ReleaseFocus(false)
 	end
 end

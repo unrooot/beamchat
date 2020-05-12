@@ -12,6 +12,7 @@ local modules = beamchatRS:WaitForChild("modules")
 local remotes = beamchatRS:WaitForChild("remotes")
 
 local chatmodule = require(modules.chatmodule)
+local effects = require(modules.effects)
 
 -- initialization
 local u2 = UDim2.new
@@ -26,11 +27,8 @@ sg:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
 
 -- clicking to chat
 chatbar.label.MouseButton1Click:connect(function()
-	print("i was clicked hehe")
 	if not chatmodule.chatbarToggle then
 		chatmodule.chatbar()
-	else
-		print("she's active")
 	end
 end)
 
@@ -62,6 +60,8 @@ local function finalizeSearch()
 		chatmodule.searching.results,
 		chatmodule.searching.last
 
+	chatbar.input:ReleaseFocus()
+
 	if type == "username" then
 		chatbar.input.Text = string.sub(cbInput, 0, #cbInput - #last) .. results[selected] .. " "
 	elseif type == "emoji" then
@@ -78,6 +78,9 @@ local function finalizeSearch()
 		wait(0.25)
 		res:Destroy()
 	end
+
+	wait()
+	chatbar.input:CaptureFocus()
 end
 
 -- keyboard controls
@@ -107,17 +110,24 @@ uis.InputBegan:connect(function(input, gpe)
 					if res then
 						-- we love ternaries
 						local direction = input.KeyCode == Enum.KeyCode.Up and -1 or 1
+
+						-- sorry for being lazy :'(
+						local oldSelected = chatmodule.searching.selected
 						local selected, results = chatmodule.searching.selected, chatmodule.searching.results
 
 						if selected + direction > #results then
 							chatmodule.searching.selected = 1
+							oldSelected = #results
 						elseif selected + direction > 0 then
 							chatmodule.searching.selected = selected + direction
 						elseif selected + direction <= 0 then
 							chatmodule.searching.selected = #results
+							oldSelected = 1
 						end
 
+						effects.fade(res:WaitForChild("entries")[oldSelected], 0.25, {TextTransparency = 0.2})
 						res:WaitForChild("highlight"):TweenPosition(u2(0, 0, 0, 26*(chatmodule.searching.selected-1)), "Out", "Quart", 0.25, true)
+						effects.fade(res:WaitForChild("entries")[chatmodule.searching.selected], 0.25, {TextTransparency = 0})
 					end
 				end
 			end
