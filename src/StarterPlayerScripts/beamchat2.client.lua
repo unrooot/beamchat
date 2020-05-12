@@ -26,6 +26,7 @@ sg:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
 
 -- clicking to chat
 chatbar.label.MouseButton1Click:connect(function()
+	print("i was clicked hehe")
 	if not chatmodule.chatbarToggle then
 		chatmodule.chatbar()
 	else
@@ -122,9 +123,9 @@ uis.InputBegan:connect(function(input, gpe)
 			end
 		end
 	elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-		if gpe then
+		if not gpe then
 			if chatmodule.chatbarToggle then
-				chatmodule.chatbar()
+				chatmodule.chatbar(false)
 			end
 		end
 	end

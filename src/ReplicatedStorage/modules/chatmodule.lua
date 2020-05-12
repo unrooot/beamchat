@@ -139,14 +139,12 @@ end
 lib.chatbar = function(sending)
 	if not lib.chatbarToggle then
 		lib.chatbarToggle = true
-		-- prepare chatbar
-		chatbar.input.Text = ""
 
 		-- chatbar effects
-		chatbar.label.Active = false
 		chatbar.input.Active = true
 		effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.5})
-		effects.fade(chatbar.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
+		effects.fade(chatbar.input, 0.25, {TextTransparency = 0})
+		effects.fade(chatbar.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1, Active = false, Visible = false})
 		chatbar.label:TweenPosition(u2(0.025, 0, 0, 0), "Out", "Quart", 0.25, true)
 
 		game:GetService("RunService").RenderStepped:wait()
@@ -155,13 +153,17 @@ lib.chatbar = function(sending)
 		lib.chatbarToggle = false
 		-- capture user input
 		local msg = chatbar.input.Text
-		chatbar.input.Text = ""
+
+		if sending then
+			-- reset input if sending
+			chatbar.input.Text = ""
+		end
 
 		-- reset chatbar properties
-		chatbar.label.Active = true
 		chatbar.input.Active = false
 		effects.fade(chatbar, 0.25, {BackgroundTransparency = 1})
-		effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.9})
+		effects.fade(chatbar.input, 0.25, {TextTransparency = 1})
+		effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.9, Active = true, Visible = true})
 		chatbar.label:TweenPosition(u2(), "Out", "Quart", 0.25, true)
 
 		local sanitized = lib.sanitize(msg)
