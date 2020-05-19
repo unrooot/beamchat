@@ -45,6 +45,7 @@ lib.search = function()
 		end
 
 		if string.sub(input, 0, 2) ~= "--" and string.sub(lastWord, 0, 1) ~= ":" then
+			print("looking for emojis :)")
 			-- search for players
 			chatbar.input:ReleaseFocus()
 
@@ -69,6 +70,7 @@ lib.search = function()
 				resultsFrame.BackgroundTransparency = 0.5
 				resultsFrame.Name = "results"
 				resultsFrame.Position = u2(0, chatbar.input.TextBounds.X, 0, 0)
+				resultsFrame.ClipDescendants = true
 
 				local highlight = Instance.new("Frame", resultsFrame)
 				highlight.BackgroundTransparency = 0.85
@@ -119,7 +121,16 @@ lib.search = function()
 			end
 		elseif string.sub(lastWord, 0, 1) == ":" then
 			if lib.searching then
+				if lib.searching.type == "emoji" then
+					local res = chatbar:FindFirstChild("results")
+					if res then
+						res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
+						wait(0.25)
+						res:Destroy()
+					end
 
+					lib.searching = nil
+				end
 			end
 		elseif string.sub(input, 0, 2) == "--" then
 			print("searching command")

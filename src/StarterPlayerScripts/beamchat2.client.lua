@@ -35,35 +35,46 @@ end)
 -- typing updates
 chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 	if chatmodule.searching then
-		local res = chatbar:FindFirstChild("results")
-		if res then
-			res:TweenPosition(u2(0, chatbar.input.TextBounds.X, 0, 0), "Out", "Quart", 0.25, true)
-		end
-
-		local str = chatbar.input.Text
-		local lastChar = string.sub(str, #str)
-
-		for x in string.gmatch(str, "[^%s]+") do
-			if string.sub(str, (#str - #x) + 1) == x then
-				if (string.sub(x, 0, 1) == ":") and not (string.sub(x, #x) == ":") then
-					chatmodule.emojiSearch.started = true
-					chatmodule.emojiSearch.position = (#str - #x) + 1
-				end
-			end
-		end
-
-		if lastChar == ":" and not chatmodule.emojiSearch.started then
-			chatmodule.emojiSearch.started = true
-			chatmodule.emojiSearch.position = (#str - #x) + 1
-		elseif lastChar == ":" and chatmodule.emojiSearch.started then
-			chatmodule.emojiSearch.started = false
-			chatmodule.emojiSearch.position = nil
-			chatmodule.searching = nil
-
+		if chatmodule.searching.type == "username" then
+			local res = chatbar:FindFirstChild("results")
 			if res then
 				res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
 				wait(0.25)
 				res:Destroy()
+			end
+
+			chatmodule.searching = nil
+		elseif chatmodule.searching.type == "emoji" then
+			local res = chatbar:FindFirstChild("results")
+			if res then
+				res:TweenPosition(u2(0, chatbar.input.TextBounds.X, 0, 0), "Out", "Quart", 0.25, true)
+			end
+
+			local str = chatbar.input.Text
+			local lastChar = string.sub(str, #str)
+
+			for x in string.gmatch(str, "[^%s]+") do
+				if string.sub(str, (#str - #x) + 1) == x then
+					if (string.sub(x, 0, 1) == ":") and not (string.sub(x, #x) == ":") then
+						chatmodule.emojiSearch.started = true
+						chatmodule.emojiSearch.position = (#str - #x) + 1
+					end
+				end
+			end
+
+			if lastChar == ":" and not chatmodule.emojiSearch.started then
+				chatmodule.emojiSearch.started = true
+				chatmodule.emojiSearch.position = (#str - #x) + 1
+			elseif lastChar == ":" and chatmodule.emojiSearch.started then
+				chatmodule.emojiSearch.started = false
+				chatmodule.emojiSearch.position = nil
+				chatmodule.searching = nil
+
+				if res then
+					res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
+					wait(0.25)
+					res:Destroy()
+				end
 			end
 		end
 	end
