@@ -24,83 +24,91 @@ local u2 = UDim2.new
 local c3 = Color3.fromRGB
 local c3w = c3(255, 255, 255)
 
+local sub = string.sub
+local gsub = string.gsub
+local gmatch = string.gmatch
+local match = string.match
+local len = string.len
+local find = string.find
+local lower = string.lower
+
 local plr = game:GetService("Players").LocalPlayer
 local beamchat = plr:WaitForChild("PlayerGui"):WaitForChild("beamchat2")
 local chatbar, chatbox = beamchat:WaitForChild("chatbar"), beamchat:WaitForChild("chatbox")
 
+local function generateResultsFrame()
+	local resultsFrame = Instance.new("Frame", chatbar)
+	resultsFrame.AnchorPoint = Vector2.new(0, 1)
+	resultsFrame.BackgroundColor3 = c3()
+	resultsFrame.BorderSizePixel = 0
+	resultsFrame.BackgroundTransparency = 0.5
+	resultsFrame.Name = "results"
+	resultsFrame.Position = u2(0, chatbar.input.TextBounds.X, 0, 0)
+	resultsFrame.ClipsDescendants = true
+
+	local highlight = Instance.new("Frame", resultsFrame)
+	highlight.BackgroundTransparency = 0.85
+	highlight.BackgroundColor3 = c3(255, 255, 255)
+	highlight.BorderSizePixel = 0
+	highlight.ZIndex = 2
+	highlight.Size = u2(1, 0, 0, 26)
+	highlight.Position = u2(0, 0, 0, 0)
+	highlight.Name = "highlight"
+
+	local entries = Instance.new("Frame", resultsFrame)
+	entries.BorderSizePixel = 0
+	entries.BackgroundTransparency = 1
+	entries.Size = u2(1, 0, 1, 0)
+	entries.Name = "entries"
+
+	local padding = Instance.new("UIPadding", entries)
+	padding.PaddingLeft = UDim.new(0, 5)
+	padding.PaddingRight = UDim.new(0, 5)
+
+	local listLayout = Instance.new("UIListLayout", entries)
+	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+	return resultsFrame
+end
+
+lib.getLastWord = function(queryString)
+	return string.gmatch(queryString, "([^%s]+)$")() -- thanks quenty :)
+end
+
 -- search for players/commands
 lib.search = function()
 	local input = chatbar.input.Text
-	local lastWord
+	local lastWord = lib.getLastWord(input)
 
 	if input ~= "" and input ~= nil then
-		for result in string.gmatch(input, "[^%s]+") do
-			if string.sub(input, (#input - #result) + 1) == result then
-				lastWord = result
-			end
-		end
-
-		if not lastWord then
-			lastWord = ""
-		end
-
-		if string.sub(input, 0, 2) ~= "--" and string.sub(lastWord, 0, 1) ~= ":" then
-			print("looking for emojis :)")
+		if sub(input, 0, 2) ~= "--" and sub(lastWord, 0, 1) ~= ":" then
 			-- search for players
 			chatbar.input:ReleaseFocus()
 
 			local matches = {}
-			for result in string.gmatch(input, "[^%s]+") do
-				if string.sub(input, (#input - #result) + 1) == result then
+			for result in gmatch(input, "[^%s]+") do
+				if sub(input, (#input - #result) + 1) == result then
 					-- strip @ from string
-					local name = string.lower(string.gsub(result, "@", ""))
+					local name = lower(gsub(result, "@", ""))
 					for _,player in pairs(game.Players:GetPlayers()) do
-						if string.find(string.lower(player.Name), name) then
+						if find(lower(player.Name), name) then
 							table.insert(matches, player.Name)
 						end
 					end
 				end
 			end
 
+			-- generate list if there are only a few results
 			if #matches > 1 then
-				local resultsFrame = Instance.new("Frame", chatbar)
-				resultsFrame.AnchorPoint = Vector2.new(0, 1)
-				resultsFrame.BackgroundColor3 = c3()
-				resultsFrame.BorderSizePixel = 0
-				resultsFrame.BackgroundTransparency = 0.5
-				resultsFrame.Name = "results"
-				resultsFrame.Position = u2(0, chatbar.input.TextBounds.X, 0, 0)
-				resultsFrame.ClipDescendants = true
-
-				local highlight = Instance.new("Frame", resultsFrame)
-				highlight.BackgroundTransparency = 0.85
-				highlight.BackgroundColor3 = c3(255, 255, 255)
-				highlight.BorderSizePixel = 0
-				highlight.ZIndex = 2
-				highlight.Size = u2(1, 0, 0, 26)
-				highlight.Position = u2(0, 0, 0, 0)
-				highlight.Name = "highlight"
-
-				local entries = Instance.new("Frame", resultsFrame)
-				entries.BorderSizePixel = 0
-				entries.BackgroundTransparency = 1
-				entries.Size = u2(1, 0, 1, 0)
-				entries.Name = "entries"
-
-				local padding = Instance.new("UIPadding", entries)
-				padding.PaddingLeft = UDim.new(0, 5)
-				padding.PaddingRight = UDim.new(0, 5)
-
-				local listLayout = Instance.new("UIListLayout", entries)
-				listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
+				local resultsFrame = generateResultsFrame()
 				local longest = ""
+
 				for i = 1, #matches do
 					if #matches[i] > #longest then
 						longest = matches[i]
 					end
 
-					local t = Instance.new("TextLabel", entries)
+					local t = Instance.new("TextLabel", resultsFrame.entries)
 					t.BackgroundTransparency = 1
 					t.BorderSizePixel = 0
 					t.ZIndex = 3
@@ -117,22 +125,64 @@ lib.search = function()
 				resultsFrame:TweenSize(u2(0, txt:GetTextSize(longest, 14, Enum.Font.GothamSemibold, Vector2.new(185, 20)).X + 10, 0, #matches*26), "Out", "Quart", 0.25, true)
 				lib.searching = {type = "username", selected = 1, results = matches, last = lastWord}
 			elseif #matches == 1 then
-				chatbar.input.Text = string.sub(input, 0, #input - #lastWord) .. matches[1] .. " "
+				chatbar.input.Text = sub(input, 0, #input - #lastWord) .. matches[1] .. " "
 			end
-		elseif string.sub(lastWord, 0, 1) == ":" then
-			if lib.searching then
-				if lib.searching.type == "emoji" then
-					local res = chatbar:FindFirstChild("results")
-					if res then
-						res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
-						wait(0.25)
-						res:Destroy()
-					end
+		elseif sub(lastWord, 0, 1) == ":" then
+			if lastWord then
+				if sub(input, (#input - #lastWord) + 1) == lastWord then
+					if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
+						if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
+							-- search for relevant emojis
+							local query = sub(lastWord, 2, len(lastWord))
+							local searchResults = emoji.search(query)
 
-					lib.searching = nil
+							local longest = ""
+
+							-- clear current entries
+							local res = chatbar:FindFirstChild("results") or generateResultsFrame()
+							for _,v in pairs(res:WaitForChild("entries"):GetChildren()) do
+								if v:IsA("TextLabel") then
+									v:Destroy()
+								end
+							end
+
+							-- create results list
+							local function createEmojiEntry(iteration, name, obj)
+								local t = Instance.new("TextLabel", res.entries)
+								t.BackgroundTransparency = 1
+								t.BorderSizePixel = 0
+								t.ZIndex = 3
+								t.Size = u2(1, 0, 0, 26)
+								t.TextXAlignment = Enum.TextXAlignment.Left
+								t.Font = Enum.Font.GothamSemibold
+								t.Name = iteration
+								t.Text = obj .. " :" .. name .. ":"
+								t.TextSize = 14
+								t.TextColor3 = c3w
+								t.TextTransparency = iteration == 1 and 0 or 0.4
+							end
+
+							-- iterate through results
+							for i,v in pairs(searchResults) do
+								-- get longest emoji name for resizing
+								if len(v[1]) > len(longest or "") then
+									longest = v[2] .. " :" .. v[1] .. ":"
+								end
+
+								createEmojiEntry(i, v[1], v[2])
+							end
+
+							-- get the length of the longest name
+							longest = txt:GetTextSize(longest, 14, Enum.Font.GothamSemibold, Vector2.new(1000, 20)).X
+
+							-- display results
+							res:TweenSize(u2(0, longest + 10, 0, #searchResults*26), "Out", "Quart", 0.25, true)
+							lib.searching = {type = "emoji", selected = 1, results = searchResults, last = lastWord}
+						end
+					end
 				end
 			end
-		elseif string.sub(input, 0, 2) == "--" then
+		elseif sub(input, 0, 2) == "--" then
 			print("searching command")
 		end
 

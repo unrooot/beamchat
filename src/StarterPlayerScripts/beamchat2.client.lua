@@ -11,12 +11,16 @@ local beamchatRS = rs:WaitForChild("beamchat")
 local modules = beamchatRS:WaitForChild("modules")
 local remotes = beamchatRS:WaitForChild("remotes")
 
-local chatmodule = require(modules.chatmodule)
+local chatModule = require(modules.chatModule)
 local effects = require(modules.effects)
 
 -- initialization
 local u2 = UDim2.new
 local c3 = Color3.fromRGB
+
+local sub = string.sub
+local match = string.match
+local len = string.len
 
 local plr = game:GetService("Players").LocalPlayer
 local beamchat = plr:WaitForChild("PlayerGui"):WaitForChild("beamchat2")
@@ -27,15 +31,15 @@ sg:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
 
 -- clicking to chat
 chatbar.label.MouseButton1Click:connect(function()
-	if not chatmodule.chatbarToggle then
-		chatmodule.chatbar()
+	if not chatModule.chatbarToggle then
+		chatModule.chatbar()
 	end
 end)
 
 -- typing updates
 chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
-	if chatmodule.searching then
-		if chatmodule.searching.type == "username" then
+	if chatModule.searching then
+		if chatModule.searching.type == "username" then
 			local res = chatbar:FindFirstChild("results")
 			if res then
 				res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
@@ -43,37 +47,36 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 				res:Destroy()
 			end
 
-			chatmodule.searching = nil
-		elseif chatmodule.searching.type == "emoji" then
+			chatModule.searching = nil
+		elseif chatModule.searching.type == "emoji" then
 			local res = chatbar:FindFirstChild("results")
 			if res then
 				res:TweenPosition(u2(0, chatbar.input.TextBounds.X, 0, 0), "Out", "Quart", 0.25, true)
 			end
 
 			local str = chatbar.input.Text
-			local lastChar = string.sub(str, #str)
+			local lastWord = chatModule.getLastWord(str)
 
-			for x in string.gmatch(str, "[^%s]+") do
-				if string.sub(str, (#str - #x) + 1) == x then
-					if (string.sub(x, 0, 1) == ":") and not (string.sub(x, #x) == ":") then
-						chatmodule.emojiSearch.started = true
-						chatmodule.emojiSearch.position = (#str - #x) + 1
+			if lastWord then
+				if sub(str, (#str - #lastWord) + 1) == lastWord then
+					if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
+						if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
+							chatModule.search()
+						end
 					end
 				end
 			end
+		end
+	else
+		local str = chatbar.input.Text
+		local lastWord = chatModule.getLastWord(str)
 
-			if lastChar == ":" and not chatmodule.emojiSearch.started then
-				chatmodule.emojiSearch.started = true
-				chatmodule.emojiSearch.position = (#str - #x) + 1
-			elseif lastChar == ":" and chatmodule.emojiSearch.started then
-				chatmodule.emojiSearch.started = false
-				chatmodule.emojiSearch.position = nil
-				chatmodule.searching = nil
-
-				if res then
-					res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
-					wait(0.25)
-					res:Destroy()
+		if lastWord then
+			if sub(str, (#str - #lastWord) + 1) == lastWord then
+				if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
+					if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
+						chatModule.search()
+					end
 				end
 			end
 		end
@@ -83,8 +86,8 @@ end)
 -- chatbar events
 chatbar.input.FocusLost:connect(function(enterPressed)
 	if enterPressed then
-		if not chatmodule.searching then
-			chatmodule.chatbar(true)
+		if not chatModule.searching then
+			chatModule.chatbar(true)
 		else
 			chatbar.input:CaptureFocus()
 		end
@@ -93,22 +96,22 @@ end)
 
 local function finalizeSearch()
 	local cbInput = chatbar.input.Text
-	local type, selected, results, last = chatmodule.searching.type,
-		chatmodule.searching.selected,
-		chatmodule.searching.results,
-		chatmodule.searching.last
+	local type, selected, results, last = chatModule.searching.type,
+		chatModule.searching.selected,
+		chatModule.searching.results,
+		chatModule.searching.last
 
 	chatbar.input:ReleaseFocus()
 
 	if type == "username" then
-		chatbar.input.Text = string.sub(cbInput, 0, #cbInput - #last) .. results[selected] .. " "
+		chatbar.input.Text = sub(cbInput, 0, #cbInput - #last) .. results[selected] .. " "
 	elseif type == "emoji" then
 		--
 	elseif type == "command" then
 		--
 	end
 
-	chatmodule.searching = nil
+	chatModule.searching = nil
 
 	local res = chatbar:FindFirstChild("results")
 	if res then
@@ -126,68 +129,68 @@ uis.InputBegan:connect(function(input, gpe)
 	if input.UserInputType == Enum.UserInputType.Keyboard then
 		if not gpe then
 			if input.KeyCode == Enum.KeyCode.Slash then
-				if not chatmodule.chatbarToggle then
+				if not chatModule.chatbarToggle then
 					game:GetService("RunService").RenderStepped:wait()
-					chatmodule.chatbar()
+					chatModule.chatbar()
 				end
 			end
 		else
 			if input.KeyCode == Enum.KeyCode.Return then
-				if chatmodule.searching then
+				if chatModule.searching then
 					finalizeSearch()
 				end
 			elseif input.KeyCode == Enum.KeyCode.Tab then
-				if chatmodule.searching then
+				if chatModule.searching then
 					finalizeSearch()
 				else
-					chatmodule.search()
+					chatModule.search()
 				end
 			elseif input.KeyCode == Enum.KeyCode.Up or input.KeyCode == Enum.KeyCode.Down then
-				if chatmodule.searching then
+				if chatModule.searching then
 					local res = chatbar:FindFirstChild("results")
 					if res then
 						-- we love ternaries
 						local direction = input.KeyCode == Enum.KeyCode.Up and -1 or 1
 
 						-- sorry for being lazy :'(
-						local oldSelected = chatmodule.searching.selected
-						local selected, results = chatmodule.searching.selected, chatmodule.searching.results
+						local oldSelected = chatModule.searching.selected
+						local selected, results = chatModule.searching.selected, chatModule.searching.results
 
 						if selected + direction > #results then
-							chatmodule.searching.selected = 1
+							chatModule.searching.selected = 1
 							oldSelected = #results
 						elseif selected + direction > 0 then
-							chatmodule.searching.selected = selected + direction
+							chatModule.searching.selected = selected + direction
 						elseif selected + direction <= 0 then
-							chatmodule.searching.selected = #results
+							chatModule.searching.selected = #results
 							oldSelected = 1
 						end
 
-						effects.fade(res:WaitForChild("entries")[oldSelected], 0.25, {TextTransparency = 0.2})
-						res:WaitForChild("highlight"):TweenPosition(u2(0, 0, 0, 26*(chatmodule.searching.selected-1)), "Out", "Quart", 0.25, true)
-						effects.fade(res:WaitForChild("entries")[chatmodule.searching.selected], 0.25, {TextTransparency = 0})
+						effects.fade(res:WaitForChild("entries")[oldSelected], 0.25, {TextTransparency = 0.4})
+						res:WaitForChild("highlight"):TweenPosition(u2(0, 0, 0, 26*(chatModule.searching.selected-1)), "Out", "Quart", 0.25, true)
+						effects.fade(res:WaitForChild("entries")[chatModule.searching.selected], 0.25, {TextTransparency = 0})
 					end
 				else
 					if input.KeyCode == Enum.KeyCode.Up or input.KeyCode == Enum.KeyCode.Down then
 						local direction = input.KeyCode == Enum.KeyCode.Up and -1 or 1
 
-						if #chatmodule.chatHistory > 0 then
-							if chatmodule.historyPosition + direction < 0 then
-								if chatmodule.historyPosition ~= 1 then
-									chatmodule.chatCache = chatbar.input.Text
-									chatmodule.historyPosition = #chatmodule.chatHistory
-									chatbar.input.Text = chatmodule.chatHistory[chatmodule.historyPosition]
+						if #chatModule.chatHistory > 0 then
+							if chatModule.historyPosition + direction < 0 then
+								if chatModule.historyPosition ~= 1 then
+									chatModule.chatCache = chatbar.input.Text
+									chatModule.historyPosition = #chatModule.chatHistory
+									chatbar.input.Text = chatModule.chatHistory[chatModule.historyPosition]
 									chatbar.input.CursorPosition = #chatbar.input.Text + 1
 								end
-							elseif chatmodule.historyPosition + direction > #chatmodule.chatHistory then
-								chatmodule.historyPosition = 0
-								chatbar.input.Text = chatmodule.chatCache
+							elseif chatModule.historyPosition + direction > #chatModule.chatHistory then
+								chatModule.historyPosition = 0
+								chatbar.input.Text = chatModule.chatCache
 								chatbar.input.CursorPosition = #chatbar.input.Text + 1
 							else
-								if chatmodule.historyPosition + direction ~= 0 then
-									if chatmodule.historyPosition ~= 0 then
-										chatmodule.historyPosition = chatmodule.historyPosition + direction
-										chatbar.input.Text = chatmodule.chatHistory[chatmodule.historyPosition]
+								if chatModule.historyPosition + direction ~= 0 then
+									if chatModule.historyPosition ~= 0 then
+										chatModule.historyPosition = chatModule.historyPosition + direction
+										chatbar.input.Text = chatModule.chatHistory[chatModule.historyPosition]
 										chatbar.input.CursorPosition = #chatbar.input.Text + 1
 									end
 								end
@@ -199,8 +202,8 @@ uis.InputBegan:connect(function(input, gpe)
 		end
 	elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
 		if not gpe then
-			if chatmodule.chatbarToggle then
-				chatmodule.chatbar(false)
+			if chatModule.chatbarToggle then
+				chatModule.chatbar(false)
 			end
 		end
 	end
