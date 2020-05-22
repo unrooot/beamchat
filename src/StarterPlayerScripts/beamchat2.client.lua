@@ -29,6 +29,43 @@ local chatbar, chatbox = beamchat:WaitForChild("chatbar"), beamchat:WaitForChild
 -- disable the default chat
 sg:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
 
+local function finalizeSearch()
+	if chatModule.searching then
+		local cbInput = chatbar.input.Text
+		local type, selected, results, last = chatModule.searching.type,
+			chatModule.searching.selected,
+			chatModule.searching.results,
+			chatModule.searching.last
+
+		chatbar.input:ReleaseFocus()
+
+		if type == "username" then
+			chatbar.input.Text = sub(cbInput, 0, #cbInput - #last) .. results[selected] .. " "
+		elseif type == "emoji" then
+			local endPos = #cbInput - (#last)
+			if sub(last, len(last)+1) == ":" then
+				endPos = #cbInput - (#last + 1)
+			end
+
+			chatbar.input.Text = sub(cbInput, 0, endPos) .. results[2][results[1][selected]]
+		elseif type == "command" then
+			--
+		end
+
+		chatModule.searching = nil
+
+		local res = chatbar:FindFirstChild("results")
+		if res then
+			res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
+			wait(0.25)
+			res:Destroy()
+		end
+
+		game:GetService("RunService").RenderStepped:wait()
+		chatbar.input:CaptureFocus()
+	end
+end
+
 -- clicking to chat
 chatbar.label.MouseButton1Click:connect(function()
 	if not chatModule.chatbarToggle then
@@ -63,6 +100,8 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 						if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
 							chatModule.search()
 						end
+					elseif sub(lastWord, #lastWord) == ":" and len(lastWord) ~= 1 then
+						finalizeSearch()
 					end
 				end
 			end
@@ -77,6 +116,8 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 					if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
 						chatModule.search()
 					end
+				elseif sub(lastWord, #lastWord) == ":" then
+					finalizeSearch()
 				end
 			end
 		end
@@ -93,36 +134,6 @@ chatbar.input.FocusLost:connect(function(enterPressed)
 		end
 	end
 end)
-
-local function finalizeSearch()
-	local cbInput = chatbar.input.Text
-	local type, selected, results, last = chatModule.searching.type,
-		chatModule.searching.selected,
-		chatModule.searching.results,
-		chatModule.searching.last
-
-	chatbar.input:ReleaseFocus()
-
-	if type == "username" then
-		chatbar.input.Text = sub(cbInput, 0, #cbInput - #last) .. results[selected] .. " "
-	elseif type == "emoji" then
-		--
-	elseif type == "command" then
-		--
-	end
-
-	chatModule.searching = nil
-
-	local res = chatbar:FindFirstChild("results")
-	if res then
-		res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
-		wait(0.25)
-		res:Destroy()
-	end
-
-	game:GetService("RunService").RenderStepped:wait()
-	chatbar.input:CaptureFocus()
-end
 
 -- keyboard controls
 uis.InputBegan:connect(function(input, gpe)

@@ -71,6 +71,10 @@ local function generateResultsFrame()
 	return resultsFrame
 end
 
+local function getWidth(str)
+	return txt:GetTextSize(str, 17, Enum.Font.SourceSansBold, Vector2.new(1000, 20)).X
+end
+
 lib.getLastWord = function(queryString)
 	return string.gmatch(queryString, "([^%s]+)$")() -- thanks quenty :)
 end
@@ -114,71 +118,71 @@ lib.search = function()
 					t.ZIndex = 3
 					t.Size = u2(1, 0, 0, 26)
 					t.TextXAlignment = Enum.TextXAlignment.Left
-					t.Font = Enum.Font.GothamSemibold
+					t.Font = Enum.Font.SourceSansBold
 					t.Name = tostring(i)
 					t.Text = matches[i]
-					t.TextSize = 14
+					t.TextSize = 17
 					t.TextColor3 = c3w
 					t.TextTransparency = i == 1 and 0 or 0.2
 				end
 
-				resultsFrame:TweenSize(u2(0, txt:GetTextSize(longest, 14, Enum.Font.GothamSemibold, Vector2.new(185, 20)).X + 10, 0, #matches*26), "Out", "Quart", 0.25, true)
+				resultsFrame:TweenSize(u2(0, txt:GetTextSize(longest, 17, Enum.Font.SourceSansBold, Vector2.new(185, 20)).X + 10, 0, #matches*26), "Out", "Quart", 0.25, true)
 				lib.searching = {type = "username", selected = 1, results = matches, last = lastWord}
 			elseif #matches == 1 then
 				chatbar.input.Text = sub(input, 0, #input - #lastWord) .. matches[1] .. " "
 			end
 		elseif sub(lastWord, 0, 1) == ":" then
-			if lastWord then
-				if sub(input, (#input - #lastWord) + 1) == lastWord then
-					if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
-						if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
-							-- search for relevant emojis
-							local query = sub(lastWord, 2, len(lastWord))
-							local searchResults = emoji.search(query)
+			if sub(input, (#input - #lastWord) + 1) == lastWord then
+				if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
+					if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
+						-- search for relevant emojis
+						local query = sub(lastWord, 2, len(lastWord))
+						local sorted, all = emoji.search(query)
 
-							local longest = ""
+						local longest = 0
 
-							-- clear current entries
-							local res = chatbar:FindFirstChild("results") or generateResultsFrame()
-							for _,v in pairs(res:WaitForChild("entries"):GetChildren()) do
-								if v:IsA("TextLabel") then
-									v:Destroy()
-								end
+						-- clear current entries
+						local res = chatbar:FindFirstChild("results") or generateResultsFrame()
+						for _,v in pairs(res:WaitForChild("entries"):GetChildren()) do
+							if v:IsA("TextLabel") then
+								v:Destroy()
 							end
-
-							-- create results list
-							local function createEmojiEntry(iteration, name, obj)
-								local t = Instance.new("TextLabel", res.entries)
-								t.BackgroundTransparency = 1
-								t.BorderSizePixel = 0
-								t.ZIndex = 3
-								t.Size = u2(1, 0, 0, 26)
-								t.TextXAlignment = Enum.TextXAlignment.Left
-								t.Font = Enum.Font.GothamSemibold
-								t.Name = iteration
-								t.Text = obj .. " :" .. name .. ":"
-								t.TextSize = 14
-								t.TextColor3 = c3w
-								t.TextTransparency = iteration == 1 and 0 or 0.4
-							end
-
-							-- iterate through results
-							for i,v in pairs(searchResults) do
-								-- get longest emoji name for resizing
-								if len(v[1]) > len(longest or "") then
-									longest = v[2] .. " :" .. v[1] .. ":"
-								end
-
-								createEmojiEntry(i, v[1], v[2])
-							end
-
-							-- get the length of the longest name
-							longest = txt:GetTextSize(longest, 14, Enum.Font.GothamSemibold, Vector2.new(1000, 20)).X
-
-							-- display results
-							res:TweenSize(u2(0, longest + 10, 0, #searchResults*26), "Out", "Quart", 0.25, true)
-							lib.searching = {type = "emoji", selected = 1, results = searchResults, last = lastWord}
 						end
+
+						-- create results list
+						local function createEmojiEntry(iteration, name, obj)
+							local t = Instance.new("TextLabel", res.entries)
+							t.BackgroundTransparency = 1
+							t.BorderSizePixel = 0
+							t.ZIndex = 3
+							t.Size = u2(1, 0, 0, 26)
+							t.TextXAlignment = Enum.TextXAlignment.Left
+							t.Font = Enum.Font.SourceSansBold
+							t.Name = iteration
+							t.Text = obj .. " :" .. name .. ":"
+							t.TextSize = 17
+							t.TextColor3 = c3w
+							t.TextTransparency = iteration == 1 and 0 or 0.4
+						end
+
+						-- iterate through results
+						local c = 0
+						for i,v in pairs(sorted) do
+							if c <= 6 then
+								c = c + 1
+								-- get longest emoji name for resizing
+								local lengthOfCurrent = getWidth(all[v] .. " :" .. v .. ":")
+								if lengthOfCurrent > longest then
+									longest = lengthOfCurrent
+								end
+
+								createEmojiEntry(i, v, all[v])
+							end
+						end
+
+						-- display results
+						res:TweenSize(u2(0, longest + 10, 0, #sorted*26), "Out", "Quart", 0.25, true)
+						lib.searching = {type = "emoji", selected = 1, results = {sorted, all}, last = lastWord}
 					end
 				end
 			end

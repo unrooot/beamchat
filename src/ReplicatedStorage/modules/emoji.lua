@@ -1578,12 +1578,9 @@ local emojiMap = {
 local match = string.match
 local gmatch = string.gmatch
 local find = string.find
-local len = string.length
 
 lib.search = function(query)
 	local res = {}
-	local max = 6
-	local count = 0
 
 	-- levenshtein distance implenetation by hlelo_wolrd
 	local searchRegex = ""
@@ -1595,18 +1592,21 @@ lib.search = function(query)
 
 	for x,y in pairs(emojiMap) do
 		if find(x, searchRegex) then
-			if count <= max then
-				table.insert(res, #res + 1, {x, y})
-				count = count + 1
-			end
+			res.x = y
+			--table.insert(res, #res + 1, {x, y})
 		end
 	end
 
-	table.sort(res, function(a, b)
-		return len(a[1]) < len(b[1])
+	local sorted_results = {}
+	for i,_ in pairs(res) do
+		table.insert(sorted_results, i)
+	end
+
+	table.sort(sorted_results, function(a, b)
+		return #a < #b
 	end)
 
-	return res
+	return sorted_results, res
 end
 
 lib.map = function(emoji)
