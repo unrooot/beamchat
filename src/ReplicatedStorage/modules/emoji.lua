@@ -1578,6 +1578,7 @@ local emojiMap = {
 local match = string.match
 local gmatch = string.gmatch
 local find = string.find
+local len = string.length
 
 lib.search = function(query)
 	local res = {}
@@ -1600,6 +1601,10 @@ lib.search = function(query)
 			end
 		end
 	end
+
+	table.sort(res, function(a, b)
+		return len(a[1]) < len(b[1])
+	end)
 
 	return res
 end
