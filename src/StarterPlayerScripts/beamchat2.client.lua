@@ -5,6 +5,7 @@
 local rs = game:GetService("ReplicatedStorage")
 local sg = game:GetService("StarterGui")
 local uis = game:GetService("UserInputService")
+local cs = game:GetService("Chat")
 
 -- module memes
 local beamchatRS = rs:WaitForChild("beamchat")
@@ -28,6 +29,30 @@ local chatbar, chatbox = beamchat:WaitForChild("chatbar"), beamchat:WaitForChild
 
 -- disable the default chat
 sg:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
+
+-- ugly
+local isMobile = false
+if uis.TouchEnabled and
+	not uis.KeyboardEnabled and
+	not uis.MouseEnabled and
+	not uis.GamepadEnabled and
+	not game:GetService("GuiService"):IsTenFootInterface() then
+	isMobile = true
+end
+
+local success = pcall(function()
+	canChat = cs:CanUserChatAsync(plr.UserId)
+end)
+
+if success and canChat and not isMobile then
+	chatbar.label.Text = "press / or click here to chat"
+elseif isMobile then
+	chatbar.label.Text = "tap here to chat"
+else
+	chatbar.label.Text = "your privacy settings prevent you from chatting"
+end
+
+chatbar.label.Visible = true
 
 local function finalizeSearch()
 	if chatModule.searching then

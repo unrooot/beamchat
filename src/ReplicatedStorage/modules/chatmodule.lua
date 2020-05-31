@@ -71,10 +71,6 @@ local function generateResultsFrame()
 	return resultsFrame
 end
 
-local function getWidth(str)
-	return txt:GetTextSize(str, 17, Enum.Font.SourceSansBold, Vector2.new(1000, 20)).X
-end
-
 function lib.getLastWord(queryString)
 	return string.gmatch(queryString, "([^%s]+)$")() -- thanks quenty :)
 end
