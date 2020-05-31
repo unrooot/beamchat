@@ -23,7 +23,7 @@ local match = string.match
 local len = string.len
 
 local plr = game:GetService("Players").LocalPlayer
-local beamchat = plr:WaitForChild("PlayerGui"):WaitForChild("beamchat2")
+local beamchat = plr:WaitForChild("PlayerGui"):WaitForChild("beamchat2"):WaitForChild("main")
 local chatbar, chatbox = beamchat:WaitForChild("chatbar"), beamchat:WaitForChild("chatbox")
 
 -- disable the default chat
@@ -73,24 +73,51 @@ chatbar.label.MouseButton1Click:connect(function()
 	end
 end)
 
+chatbar.input:GetPropertyChangedSignal("TextBounds"):connect(function()
+	chatModule.correctBounds()
+end)
+
+chatbar.input:GetPropertyChangedSignal("TextFits"):connect(function()
+	if not chatbar.input.TextFits then
+		chatModule.correctBounds()
+	end
+end)
+
 -- typing updates
 chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
-	if chatModule.searching then
-		if chatModule.searching.type == "username" then
-			local res = chatbar:FindFirstChild("results")
-			if res then
-				res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
-				wait(0.25)
-				res:Destroy()
-			end
+	if len(chatbar.input.Text) <= 200 then
+		if chatModule.searching then
+			if chatModule.searching.type == "username" then
+				local res = chatbar:FindFirstChild("results")
+				if res then
+					res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
+					wait(0.25)
+					res:Destroy()
+				end
 
-			chatModule.searching = nil
-		elseif chatModule.searching.type == "emoji" then
-			local res = chatbar:FindFirstChild("results")
-			if res then
-				res:TweenPosition(u2(0, chatbar.input.TextBounds.X, 0, 0), "Out", "Quart", 0.25, true)
-			end
+				chatModule.searching = nil
+			elseif chatModule.searching.type == "emoji" then
+				local res = chatbar:FindFirstChild("results")
+				if res then
+					res:TweenPosition(u2(0, chatbar.input.TextBounds.X, 0, 0), "Out", "Quart", 0.25, true)
+				end
 
+				local str = chatbar.input.Text
+				local lastWord = chatModule.getLastWord(str)
+
+				if lastWord then
+					if sub(str, (#str - #lastWord) + 1) == lastWord then
+						if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
+							if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
+								chatModule.search()
+							end
+						elseif sub(lastWord, #lastWord) == ":" and len(lastWord) ~= 1 then
+							finalizeSearch()
+						end
+					end
+				end
+			end
+		else
 			local str = chatbar.input.Text
 			local lastWord = chatModule.getLastWord(str)
 
@@ -100,32 +127,21 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 						if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
 							chatModule.search()
 						end
-					elseif sub(lastWord, #lastWord) == ":" and len(lastWord) ~= 1 then
+					elseif sub(lastWord, #lastWord) == ":" then
 						finalizeSearch()
 					end
 				end
 			end
 		end
 	else
-		local str = chatbar.input.Text
-		local lastWord = chatModule.getLastWord(str)
-
-		if lastWord then
-			if sub(str, (#str - #lastWord) + 1) == lastWord then
-				if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
-					if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
-						chatModule.search()
-					end
-				elseif sub(lastWord, #lastWord) == ":" then
-					finalizeSearch()
-				end
-			end
-		end
+		chatbar.input.Text = sub(chatbar.input.Text, 0, 200)
 	end
 end)
 
 -- chatbar events
 chatbar.input.FocusLost:connect(function(enterPressed)
+	chatModule.correctBounds(true)
+
 	if enterPressed then
 		if not chatModule.searching then
 			chatModule.chatbar(true)

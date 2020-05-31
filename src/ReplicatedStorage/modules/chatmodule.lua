@@ -33,7 +33,7 @@ local find = string.find
 local lower = string.lower
 
 local plr = game:GetService("Players").LocalPlayer
-local beamchat = plr:WaitForChild("PlayerGui"):WaitForChild("beamchat2")
+local beamchat = plr:WaitForChild("PlayerGui"):WaitForChild("beamchat2"):WaitForChild("main")
 local chatbar, chatbox = beamchat:WaitForChild("chatbar"), beamchat:WaitForChild("chatbox")
 
 local function generateResultsFrame()
@@ -75,12 +75,23 @@ local function getWidth(str)
 	return txt:GetTextSize(str, 17, Enum.Font.SourceSansBold, Vector2.new(1000, 20)).X
 end
 
-lib.getLastWord = function(queryString)
+function lib.getLastWord(queryString)
 	return string.gmatch(queryString, "([^%s]+)$")() -- thanks quenty :)
 end
 
+function lib.correctBounds(default)
+	if default then
+		chatbar:TweenSize(u2(1, 0, 0, 35), "Out", "Quart", 0.25, true)
+		chatbar.input:TweenSize(u2(1, 0, 0, 17), "Out", "Quart", 0.25, true)
+	else
+		local bounds = txt:GetTextSize(chatbar.input.Text, 17, Enum.Font.SourceSans, Vector2.new(chatbar.input.AbsoluteSize.X, 1000))
+		chatbar:TweenSize(u2(1, 0, 0, bounds.Y + 18), "Out", "Quart", 0.25, true)
+		chatbar.input.Size = u2(1, 0, 0, bounds.Y) --:TweenSize(u2(1, 0, 0, bounds.Y), "Out", "Quart", 0.25, true)
+	end
+end
+
 -- search for players/commands
-lib.search = function()
+function lib.search()
 	local input = chatbar.input.Text
 	local lastWord = lib.getLastWord(input)
 
@@ -199,7 +210,7 @@ lib.search = function()
 end
 
 -- strip newlines and empty whitespace
-lib.sanitize = function(str)
+function lib.sanitize(str)
 	local sanitized = string.gsub(str, "%s+", " ")
 	if sanitized ~= nil and sanitized ~= "" and sanitized ~= " " then
 		return sanitized
@@ -209,15 +220,16 @@ lib.sanitize = function(str)
 end
 
 -- toggling the chatbar/sending messages
-lib.chatbar = function(sending)
+function lib.chatbar(sending)
 	if not lib.chatbarToggle then
+		lib.correctBounds()
 		lib.chatbarToggle = true
 
 		-- chatbar effects
 		effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.5})
 		effects.fade(chatbar.input, 0.25, {TextTransparency = 0, Active = true, Visible = true})
 		effects.fade(chatbar.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1, Active = false, Visible = false})
-		chatbar.label:TweenPosition(u2(0.025, 0, 0, 0), "Out", "Quart", 0.25, true)
+		chatbar.label:TweenPosition(u2(0.1, 0, 0, -10), "Out", "Quart", 0.25, true)
 
 		-- why doesn't it take the renderstepped wait pls?????????
 		wait()
@@ -231,7 +243,7 @@ lib.chatbar = function(sending)
 		effects.fade(chatbar, 0.25, {BackgroundTransparency = 1})
 		effects.fade(chatbar.input, 0.25, {TextTransparency = 1, Active = false, Visible = false})
 		effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.9, Active = true, Visible = true})
-		chatbar.label:TweenPosition(u2(), "Out", "Quart", 0.25, true)
+		chatbar.label:TweenPosition(u2(0, 0, 0, -10), "Out", "Quart", 0.25, true)
 
 		lib.searching = nil
 
