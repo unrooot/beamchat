@@ -1574,42 +1574,28 @@ local emojiMap = {
 	["gay_pride_flag"] = "🏳️‍🌈"
 }
 
--- microoptimizations kek
-local match = string.match
-local gmatch = string.gmatch
 local find = string.find
 
-lib.search = function(query)
-	local res = {}
+-- the maximum amount of emojis to appear
+local maxEmojis = 7
 
-	-- levenshtein distance implenetation by hlelo_wolrd
-	local searchRegex = ""
-	if match(query, "^[_%w]*$") then
-		for x in gmatch(query, "[_%w]") do
-			searchRegex = searchRegex .. x .. ".*"
+function lib.search(query)
+	local results = {}
+	local count = 0
+
+	for i,v in pairs(emojiMap) do
+		if find(i, query) then
+			if count < maxEmojis then
+				count = count + 1
+				table.insert(results, #results + 1, {i, v})
+			end
 		end
 	end
 
-	for x,y in pairs(emojiMap) do
-		if find(x, searchRegex) then
-			res.x = y
-			--table.insert(res, #res + 1, {x, y})
-		end
-	end
-
-	local sorted_results = {}
-	for i,_ in pairs(res) do
-		table.insert(sorted_results, i)
-	end
-
-	table.sort(sorted_results, function(a, b)
-		return #a < #b
-	end)
-
-	return sorted_results, res
+	return results
 end
 
-lib.map = function(emoji)
+function lib.map(emoji)
 	return emojiMap[emoji]
 end
 

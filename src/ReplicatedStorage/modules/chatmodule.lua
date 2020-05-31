@@ -43,7 +43,7 @@ local function generateResultsFrame()
 	resultsFrame.BorderSizePixel = 0
 	resultsFrame.BackgroundTransparency = 0.5
 	resultsFrame.Name = "results"
-	resultsFrame.Position = u2(0, chatbar.input.TextBounds.X, 0, 0)
+	resultsFrame.Position = u2(0, -10, 0, -10)
 	resultsFrame.ClipsDescendants = true
 
 	local highlight = Instance.new("Frame", resultsFrame)
@@ -52,7 +52,7 @@ local function generateResultsFrame()
 	highlight.BorderSizePixel = 0
 	highlight.ZIndex = 2
 	highlight.Size = u2(1, 0, 0, 26)
-	highlight.Position = u2(0, 0, 0, 0)
+	highlight.Position = u2()
 	highlight.Name = "highlight"
 
 	local entries = Instance.new("Frame", resultsFrame)
@@ -142,15 +142,16 @@ function lib.search()
 			elseif #matches == 1 then
 				chatbar.input.Text = sub(input, 0, #input - #lastWord) .. matches[1] .. " "
 			end
+
+			wait()
+			chatbar.input:CaptureFocus()
 		elseif sub(lastWord, 0, 1) == ":" then
 			if sub(input, (#input - #lastWord) + 1) == lastWord then
 				if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
 					if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
 						-- search for relevant emojis
 						local query = sub(lastWord, 2, len(lastWord))
-						local sorted, all = emoji.search(query)
-
-						local longest = 0
+						local results = emoji.search(query)
 
 						-- clear current entries
 						local res = chatbar:FindFirstChild("results") or generateResultsFrame()
@@ -178,31 +179,22 @@ function lib.search()
 
 						-- iterate through results
 						local c = 0
-						for i,v in pairs(sorted) do
+						for i,v in pairs(results) do
 							if c <= 6 then
 								c = c + 1
-								-- get longest emoji name for resizing
-								local lengthOfCurrent = getWidth(all[v] .. " :" .. v .. ":")
-								if lengthOfCurrent > longest then
-									longest = lengthOfCurrent
-								end
-
-								createEmojiEntry(i, v, all[v])
+								createEmojiEntry(i, v[1], v[2])
 							end
 						end
 
 						-- display results
-						res:TweenSize(u2(0, longest + 10, 0, #sorted*26), "Out", "Quart", 0.25, true)
-						lib.searching = {type = "emoji", selected = 1, results = {sorted, all}, last = lastWord}
+						res:TweenSize(u2(1, 20, 0, #results*26), "Out", "Quart", 0.25, true)
+						lib.searching = {type = "emoji", selected = 1, results = results, last = lastWord}
 					end
 				end
 			end
 		elseif sub(input, 0, 2) == "--" then
 			print("searching command")
 		end
-
-		wait()
-		chatbar.input:CaptureFocus()
 	else
 		wait()
 		chatbar.input:CaptureFocus()

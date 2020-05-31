@@ -42,12 +42,12 @@ local function finalizeSearch()
 		if type == "username" then
 			chatbar.input.Text = sub(cbInput, 0, #cbInput - #last) .. results[selected] .. " "
 		elseif type == "emoji" then
-			local endPos = #cbInput - (#last)
+			local endPos = len(cbInput) - len(last)
 			if sub(last, len(last)+1) == ":" then
-				endPos = #cbInput - (#last + 1)
+				endPos = len(cbInput) - len(last)
 			end
 
-			chatbar.input.Text = sub(cbInput, 0, endPos) .. results[2][results[1][selected]]
+			chatbar.input.Text = sub(cbInput, 0, endPos) .. results[selected][2]
 		elseif type == "command" then
 			--
 		end
@@ -56,7 +56,7 @@ local function finalizeSearch()
 
 		local res = chatbar:FindFirstChild("results")
 		if res then
-			res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
+			res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
 			wait(0.25)
 			res:Destroy()
 		end
@@ -73,6 +73,7 @@ chatbar.label.MouseButton1Click:connect(function()
 	end
 end)
 
+-- resizing the chatbar
 chatbar.input:GetPropertyChangedSignal("TextBounds"):connect(function()
 	chatModule.correctBounds()
 end)
@@ -90,18 +91,13 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 			if chatModule.searching.type == "username" then
 				local res = chatbar:FindFirstChild("results")
 				if res then
-					res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
+					res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
 					wait(0.25)
 					res:Destroy()
 				end
 
 				chatModule.searching = nil
 			elseif chatModule.searching.type == "emoji" then
-				local res = chatbar:FindFirstChild("results")
-				if res then
-					res:TweenPosition(u2(0, chatbar.input.TextBounds.X, 0, 0), "Out", "Quart", 0.25, true)
-				end
-
 				local str = chatbar.input.Text
 				local lastWord = chatModule.getLastWord(str)
 
@@ -112,8 +108,17 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 								chatModule.search()
 							end
 						elseif sub(lastWord, #lastWord) == ":" and len(lastWord) ~= 1 then
+							chatbar.input.Text = sub(str, 0, len(str) - 1)
 							finalizeSearch()
 						end
+					end
+				else
+					chatModule.searching = nil
+					local res = chatbar:FindFirstChild("results")
+					if res then
+						res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
+						wait(0.25)
+						res:Destroy()
 					end
 				end
 			end
@@ -176,7 +181,6 @@ uis.InputBegan:connect(function(input, gpe)
 				if chatModule.searching then
 					local res = chatbar:FindFirstChild("results")
 					if res then
-						-- we love ternaries
 						local direction = input.KeyCode == Enum.KeyCode.Up and -1 or 1
 
 						-- sorry for being lazy :'(
