@@ -65,26 +65,35 @@ local function finalizeSearch()
 		chatbar.input:ReleaseFocus()
 
 		if type == "username" then
-			chatbar.input.Text = sub(cbInput, 0, #cbInput - #last) .. results[selected] .. " "
+			local finalStr = sub(cbInput, 0, #cbInput - #last) .. results[selected] .. " "
+
+			if sub(last, 0, 1) == "@" then
+				finalStr = sub(cbInput, 0, #cbInput - #last) .. "@" .. results[selected] .. " "
+			end
+
+			chatbar.input.Text = finalStr
 		elseif type == "emoji" then
 			local endPos = len(cbInput) - len(last)
 			if sub(last, len(last)+1) == ":" then
 				endPos = len(cbInput) - len(last)
 			end
 
-			chatbar.input.Text = sub(cbInput, 0, endPos) .. results[selected][2]
+			chatbar.input.Text = sub(cbInput, 0, endPos) .. results[selected][2] .. " "
 		elseif type == "command" then
 			--
 		end
 
 		chatModule.searching = nil
 
-		local res = chatbar:FindFirstChild("results")
-		if res then
-			res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
-			wait(0.25)
-			res:Destroy()
-		end
+		-- don't yield
+		spawn(function()
+			local res = chatbar:FindFirstChild("results")
+			if res then
+				res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
+				wait(0.25)
+				res:Destroy()
+			end
+		end)
 
 		game:GetService("RunService").RenderStepped:wait()
 		chatbar.input:CaptureFocus()
@@ -129,7 +138,7 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 				if lastWord then
 					if sub(str, (#str - #lastWord) + 1) == lastWord then
 						if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
-							if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
+							if len(sub(lastWord, 2, 3)) >= 2 then
 								chatModule.search()
 							end
 						elseif sub(lastWord, #lastWord) == ":" and len(lastWord) ~= 1 then
@@ -154,7 +163,7 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 			if lastWord then
 				if sub(str, (#str - #lastWord) + 1) == lastWord then
 					if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
-						if len(sub(lastWord, 2, 3)) >= 2 and not match(sub(lastWord, 2, len(lastWord)), "%p") then
+						if len(sub(lastWord, 2, 3)) >= 2 then
 							chatModule.search()
 						end
 					elseif sub(lastWord, #lastWord) == ":" then
