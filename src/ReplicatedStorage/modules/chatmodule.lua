@@ -192,8 +192,6 @@ function lib.search()
 							-- display results
 							res:TweenSize(u2(1, 20, 0, #results*26), "Out", "Quart", 0.25, true)
 							lib.searching = {type = "emoji", selected = 1, results = results, last = lastWord}
-						else
-							print("condition not met!")
 						end
 					end
 				end
@@ -256,7 +254,25 @@ function lib.chatbar(sending)
 				lib.historyPosition = 0
 				lib.chatCache = ""
 
-				print(sanitized)
+				if sub(sanitized, 0, 2) == "/e" then
+					local emoteName = lower(sub(sanitized, 4))
+
+					-- lowercase emote map
+					local emotes = {}
+					local desc = plr.Character.Humanoid:FindFirstChildOfClass("HumanoidDescription")
+
+					for x,_ in pairs(desc:GetEmotes()) do
+						emotes[lower(x)] = x
+					end
+
+					-- try playing animation
+					pcall(function()
+						plr.Character.Animate.PlayEmote:Invoke(emoteName)
+						plr.Character.Humanoid:PlayEmote(emotes[emoteName])
+					end)
+				else
+					remotes:WaitForChild("chat"):FireServer(sanitized)
+				end
 			end
 		end
 

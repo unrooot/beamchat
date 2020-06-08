@@ -27,8 +27,24 @@ local plr = game:GetService("Players").LocalPlayer
 local beamchat = plr:WaitForChild("PlayerGui"):WaitForChild("beamchat2"):WaitForChild("main")
 local chatbar, chatbox = beamchat:WaitForChild("chatbar"), beamchat:WaitForChild("chatbox")
 
+local typing = false
+
 -- disable the default chat
 sg:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
+
+local toggle = beamchat.Parent:WaitForChild("toggle")
+toggle.MouseButton1Click:connect(function()
+	beamchat.Visible = not beamchat.Visible
+	toggle.icon.Image = beamchat.Visible and "rbxasset://textures/ui/TopBar/chatOn.png" or "rbxasset://textures/ui/TopBar/chatOff.png"
+end)
+
+toggle.MouseEnter:connect(function()
+	toggle.ImageTransparency = 0.65
+end)
+
+toggle.MouseLeave:connect(function()
+	toggle.ImageTransparency = 0.5
+end)
 
 -- ugly
 local isMobile = false
@@ -100,6 +116,18 @@ local function finalizeSearch()
 	end
 end
 
+beamchat.MouseEnter:connect(function()
+	inContainer = true
+	effects.fade(chatbox, 0.25, {BackgroundTransparency = 0.5, ScrollBarImageTransparency = 0})
+	effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.5})
+end)
+
+beamchat.MouseLeave:connect(function()
+	inContainer = false
+	effects.fade(chatbox, 0.25, {BackgroundTransparency = 1, ScrollBarImageTransparency = 1})
+	effects.fade(chatbar, 0.25, {BackgroundTransparency = 1})
+end)
+
 -- clicking to chat
 chatbar.label.MouseButton1Click:connect(function()
 	if not chatModule.chatbarToggle then
@@ -121,6 +149,17 @@ end)
 -- typing updates
 chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 	if len(chatbar.input.Text) <= 200 then
+		if len(chatbar.input.Text) >= 1 then
+			-- prevent from firing every time we type
+			if not typing then
+				typing = true
+				remotes.typing:InvokeServer(typing)
+			end
+		else
+			typing = false
+			remotes.typing:InvokeServer(typing)
+		end
+
 		if chatModule.searching then
 			if chatModule.searching.type == "username" then
 				local res = chatbar:FindFirstChild("results")
@@ -272,4 +311,9 @@ uis.InputBegan:connect(function(input, gpe)
 			end
 		end
 	end
+end)
+
+-- remotes
+remotes:WaitForChild("chat").OnClientEvent:connect(function(chatData)
+	print(("%s: %s"):format(chatData.user, chatData.message))
 end)
