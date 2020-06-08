@@ -2,12 +2,80 @@
 
 -- services
 local rs = game:GetService("ReplicatedStorage")
+local chat = game:GetService("Chat")
+local players = game:GetService("Players")
 
--- module memes
 local beamchatRS = rs:WaitForChild("beamchat")
 local remotes = beamchatRS:WaitForChild("remotes")
-
 local resources = script.Parent:WaitForChild("resources")
+
+local config = require(script.Parent:WaitForChild("serverConfig"))
+
+-- initialization
+local sub = string.sub
+local lower = string.lower
+local split = string.split
+
+local timestamps = setmetatable({}, {
+	__index = function()
+		return 0
+	end
+})
+
+local function getMessageType(str)
+	local type = "general"
+
+	if lower(sub(str, 0, 2)) == "/w" then
+		type = "whisper"
+	end
+
+	return type
+end
+
+local function sanitize(str)
+	local sanitized = string.gsub(str, "%s+", " ")
+	if sanitized ~= nil and sanitized ~= "" and sanitized ~= " " then
+		return sanitized
+	else
+		return nil
+	end
+end
+
+
+remotes.chat.OnServerEvent:connect(function(plr, msg)
+	-- check if the player isn't spamming
+	if timestamps[plr.Name] <= config.maxSpam then
+		-- add an entry to the anit-spam filter
+		timestamps[plr.Name] = timestamps[plr.Name] + 1
+		spawn(function()
+			-- take it out after config.spamLife seconds
+			wait(config.spamLife)
+			timestamps[plr.Name] = timestamps[plr.Name] - 1
+		end)
+
+		local type = getMessageType(msg)
+		local filtered = chat:FilterStringAsync(sanitize(msg), plr, plr)
+
+		if type == "general" then
+			remotes.chat:FireAllClients({user = plr, message = filtered, type = type})
+			if config.bubbleChat then
+				chat:Chat(plr.Character.Head, filtered, 3)
+			end
+		elseif type == "whisper" then
+			local parameters = split(msg, " ")
+			if players[parameters[2]] then
+				local target = players[parameters[2]]
+				local content = sub(filtered, 3 + target.Name + 1)
+
+				-- send the message to both the sender and receiver
+				remotes.chat:FireClient(plr, {user = plr, message = content, type = type})
+				remotes.chat:FireClient(target, {user = plr, message = content, type = type})
+			else
+				remotes.chat:FireClient({user = "system", message = "Player not found.", type = "system"})
+			end
+		end
+	end
+end)
 
 function remotes.typing.OnServerInvoke(plr, status)
 	-- we don't want output spammed if someone is dead while typing
@@ -27,5 +95,3 @@ function remotes.typing.OnServerInvoke(plr, status)
 		end
 	end)
 end
-
-remotes.chat.

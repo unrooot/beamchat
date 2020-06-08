@@ -17,10 +17,7 @@ local effects = require(modules.effects)
 
 -- initialization
 local u2 = UDim2.new
-local c3 = Color3.fromRGB
-
 local sub = string.sub
-local match = string.match
 local len = string.len
 
 local plr = game:GetService("Players").LocalPlayer
@@ -117,13 +114,11 @@ local function finalizeSearch()
 end
 
 beamchat.MouseEnter:connect(function()
-	inContainer = true
 	effects.fade(chatbox, 0.25, {BackgroundTransparency = 0.5, ScrollBarImageTransparency = 0})
-	effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.5})
+	effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.3})
 end)
 
 beamchat.MouseLeave:connect(function()
-	inContainer = false
 	effects.fade(chatbox, 0.25, {BackgroundTransparency = 1, ScrollBarImageTransparency = 1})
 	effects.fade(chatbar, 0.25, {BackgroundTransparency = 1})
 end)
@@ -315,5 +310,13 @@ end)
 
 -- remotes
 remotes:WaitForChild("chat").OnClientEvent:connect(function(chatData)
-	print(("%s: %s"):format(chatData.user, chatData.message))
+	--[[
+		chatData = {
+			user = [instance],
+			message = [string],
+			type = [string]
+		}
+	--]]
+
+	chatModule.newMessage(chatData)
 end)
