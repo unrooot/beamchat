@@ -67,6 +67,16 @@ end
 
 chatbar.label.Visible = true
 
+local function clearResults()
+	chatModule.searching = nil
+	local res = chatbar:FindFirstChild("results")
+	if res then
+		res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
+		wait(0.25)
+		res:Destroy()
+	end
+end
+
 local function finalizeSearch()
 	if chatModule.searching then
 		local cbInput = chatbar.input.Text
@@ -96,16 +106,10 @@ local function finalizeSearch()
 			--
 		end
 
-		chatModule.searching = nil
 
 		-- don't yield
 		spawn(function()
-			local res = chatbar:FindFirstChild("results")
-			if res then
-				res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
-				wait(0.25)
-				res:Destroy()
-			end
+			clearResults()
 		end)
 
 		game:GetService("RunService").RenderStepped:wait()
@@ -121,6 +125,15 @@ end)
 beamchat.MouseLeave:connect(function()
 	effects.fade(chatbox, 0.25, {BackgroundTransparency = 1, ScrollBarImageTransparency = 1})
 	effects.fade(chatbar, 0.25, {BackgroundTransparency = chatbar.input:IsFocused() and 0.3 or 1})
+end)
+
+beamchat:GetPropertyChangedSignal("AbsoluteSize"):connect(function()
+	print("resized")
+	for _,v in pairs(chatbox:GetChildren()) do
+		if v:IsA("Frame") then
+			chatModule.correctSize(v)
+		end
+	end
 end)
 
 -- clicking to chat
@@ -157,14 +170,7 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 
 		if chatModule.searching then
 			if chatModule.searching.type == "username" then
-				local res = chatbar:FindFirstChild("results")
-				if res then
-					res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
-					wait(0.25)
-					res:Destroy()
-				end
-
-				chatModule.searching = nil
+				clearResults()
 			elseif chatModule.searching.type == "emoji" then
 				local str = chatbar.input.Text
 				local lastWord = chatModule.getLastWord(str)
@@ -176,32 +182,36 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 								chatModule.search()
 							end
 						elseif sub(lastWord, #lastWord) == ":" and len(lastWord) ~= 1 then
-							chatbar.input.Text = sub(str, 0, len(str) - 1)
-							finalizeSearch()
+							local selected = chatModule.searching.selected
+							local results = chatModule.searching.results
+							local query = sub(lastWord, 2, #lastWord - 1)
+
+							if query == results[selected][1] then
+								chatbar.input.Text = sub(str, 0, len(str) - 1)
+								finalizeSearch()
+							else
+								clearResults()
+							end
 						end
 					end
 				else
-					chatModule.searching = nil
-					local res = chatbar:FindFirstChild("results")
-					if res then
-						res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
-						wait(0.25)
-						res:Destroy()
-					end
+					clearResults()
 				end
 			end
 		else
-			local str = chatbar.input.Text
-			local lastWord = chatModule.getLastWord(str)
+			if not isMobile then
+				local str = chatbar.input.Text
+				local lastWord = chatModule.getLastWord(str)
 
-			if lastWord then
-				if sub(str, (#str - #lastWord) + 1) == lastWord then
-					if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
-						if len(sub(lastWord, 2, 3)) >= 2 then
-							chatModule.search()
+				if lastWord then
+					if sub(str, (#str - #lastWord) + 1) == lastWord then
+						if (sub(lastWord, 0, 1) == ":") and not (sub(lastWord, #lastWord) == ":") then
+							if len(sub(lastWord, 2, 3)) >= 2 then
+								chatModule.search()
+							end
+						elseif sub(lastWord, #lastWord) == ":" then
+							finalizeSearch()
 						end
-					elseif sub(lastWord, #lastWord) == ":" then
-						finalizeSearch()
 					end
 				end
 			end

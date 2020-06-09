@@ -43,11 +43,10 @@ local function generateResultsFrame()
 	resultsFrame.AnchorPoint = Vector2.new(0, 1)
 	resultsFrame.BackgroundColor3 = c3()
 	resultsFrame.BorderSizePixel = 0
-	resultsFrame.BackgroundTransparency = 0.5
+	resultsFrame.BackgroundTransparency = 0.15
 	resultsFrame.Name = "results"
 	resultsFrame.Position = u2(0, -10, 0, -10)
 	resultsFrame.ClipsDescendants = true
-	resultsFrame.ZIndex = 3
 
 	local highlight = Instance.new("Frame", resultsFrame)
 	highlight.BackgroundTransparency = 0.85
@@ -74,10 +73,14 @@ local function generateResultsFrame()
 	return resultsFrame
 end
 
+-- Get the last word in a string.
+-- @param {string} queryString - The string to strip the last word from.
 function lib.getLastWord(queryString)
 	return string.gmatch(queryString, "([^%s]+)$")() -- thanks quenty :)
 end
 
+-- Dynamically resize the bounds of the chatbar when typing.
+-- @param {boolean} default - Whether or not the chatbar should reset to its default size.
 function lib.correctBounds(default)
 	if default then
 		chatbar:TweenSize(u2(1, 0, 0, 35), "Out", "Quart", 0.25, true)
@@ -295,6 +298,8 @@ end
 -- Correct the chat entry sizes if the user resizes their screen.
 function lib.correctSize(message)
 	assert(message.ClassName == "Frame", "[chatModule] [correctSize] parameter message must be a frame.")
+
+	print("[chatModule] [correctSize] function called.")
 
 	-- get the new size of the message and resize accordingly
 	local msgSize = txt:GetTextSize(message.message, 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 1000))
