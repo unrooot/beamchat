@@ -19,6 +19,8 @@ local remotes = beamchatRS:WaitForChild("remotes")
 
 local effects = require(modules:WaitForChild("effects"))
 local emoji = require(modules:WaitForChild("emoji"))
+local colors = require(modules:WaitForChild("chatColors"))
+local config = require(modules:WaitForChild("clientConfig"))
 
 local u2 = UDim2.new
 local c3 = Color3.fromRGB
@@ -82,9 +84,11 @@ function lib.correctBounds(default)
 	else
 		local bounds = txt:GetTextSize(chatbar.input.Text, 17, Enum.Font.SourceSans, Vector2.new(chatbar.input.AbsoluteSize.X, 1000))
 		chatbar:TweenSize(u2(1, 0, 0, bounds.Y + 18), "Out", "Quart", 0.25, true)
-		chatbar.input.Size = u2(1, 0, 0, bounds.Y) --:TweenSize(u2(1, 0, 0, bounds.Y), "Out", "Quart", 0.25, true)
+		chatbar.input.Size = u2(1, 0, 0, bounds.Y)
 	end
 end
+
+--kkona
 
 -- search for players/commands
 function lib.search()
@@ -222,7 +226,7 @@ function lib.chatbar(sending)
 		lib.chatbarToggle = true
 
 		-- chatbar effects
-		effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.5})
+		effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.3})
 		effects.fade(chatbar.input, 0.25, {TextTransparency = 0, Active = true, Visible = true})
 		effects.fade(chatbar.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1, Active = false, Visible = false})
 		chatbar.label:TweenPosition(u2(0.1, 0, 0, -10), "Out", "Quart", 0.25, true)
@@ -285,6 +289,108 @@ function lib.chatbar(sending)
 
 		chatbar.input:ReleaseFocus()
 	end
+end
+
+function lib.newMessage(chatData)
+	local user = chatData.user
+	local msg = chatData.message
+	local type = chatData.type
+
+	local container = Instance.new("Frame")
+	container.Parent = chatbox
+	container.BackgroundTransparency = 1
+	container.BorderSizePixel = 0
+	container.AnchorPoint = Vector2.new(0, 1)
+	container.Name = "1"
+
+	local posY = Instance.new("NumberValue")
+	posY.Parent = container
+	posY.Name = "posY"
+
+	if type == "whisper" then
+		local target = chatData.target
+		if target == plr.Name then
+			user = "{whisper from} " .. user
+		else
+			user = "{whisper to} " .. target
+		end
+	end
+
+	local userSize = txt:GetTextSize(user .. ":", 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 22))
+	local ulabel = Instance.new("TextLabel")
+	ulabel.Parent = container
+	ulabel.BackgroundTransparency = 1
+	ulabel.BorderSizePixel = 0
+	ulabel.Font = Enum.Font.SourceSansBold
+	ulabel.TextSize = 18
+	ulabel.TextColor3 = colors.getColor(user)
+	ulabel.Text = user .. ":"
+	ulabel.Size = u2(0, userSize.X, 0, 22)
+	ulabel.TextTransparency = 1
+	ulabel.Name = "user"
+
+	local msgSize = txt:GetTextSize(msg, 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 1000))
+	local msgLabel = Instance.new("TextLabel")
+	msgLabel.Parent = container
+	msgLabel.BackgroundTransparency = 1
+	msgLabel.BorderSizePixel = 0
+	msgLabel.Font = Enum.Font.SourceSans
+	msgLabel.TextSize = 18
+	msgLabel.TextColor3 = c3(255, 255, 255)
+	msgLabel.Size = u2(1, 0, 1, 0)
+	msgLabel.Position = u2(0, 0, 0, 2)
+	msgLabel.Text = string.rep(" ", math.floor(userSize.X/3)+2) .. msg
+	msgLabel.TextXAlignment = Enum.TextXAlignment.Left
+	msgLabel.TextTransparency = 1
+	msgLabel.TextWrapped = true
+	msgLabel.TextYAlignment = Enum.TextYAlignment.Top
+	msgLabel.Name = "message"
+
+	-- resize container
+	container.Size = u2(1, 0, 0, msgSize.Y == 18 and 22 or msgSize.Y+2)
+
+	for _,v in pairs(chatbox:GetChildren()) do
+		if v:IsA("Frame") and v ~= container then
+			v.posY.Value = v.posY.Value - container.Size.Y.Offset
+			v.Name = tonumber(v.Name) + 1
+			if config.chatAnimation == "modern" then
+				v:TweenPosition(u2(0, 0, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset))), "Out", "Quart", 0.25, true)
+			elseif config.chatAnimation == "classic" then
+				v.Position = u2(0, 0, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset)))
+			end
+			if tonumber(v.Name) > config.chatLimit then
+				effects.fade(v.message.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
+				effects.fade(v.user.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
+
+				game:GetService("Debris"):AddItem(v, 1)
+			end
+		end
+	end
+
+	container.Position = u2(0, 0, 1, container.Size.Y.Offset)
+	container.Visible  = true
+
+	effects.fade(ulabel, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.7})
+	effects.fade(msgLabel, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.7})
+
+	if config.chatAnimation == "modern" then
+		container:TweenPosition(u2(0, 0, 1, 0), "Out", "Quart", 0.25, true)
+	elseif config.chatAnimation == "classic" then
+		container.Position = u2(0, 0, 1, 0)
+	end
+
+	local heightSum = 0
+	for _,v in pairs(chatbox:GetChildren()) do
+		if v:IsA("Frame") then
+			heightSum = heightSum + v.AbsoluteSize.Y + 2
+		end
+	end
+
+	chatbox.CanvasSize = u2(0, 0, 0, heightSum)
+
+	-- if not inContainer then
+		chatbox.CanvasPosition = Vector2.new(0, chatbox.CanvasSize.Y.Offset)
+	-- end
 end
 
 return lib

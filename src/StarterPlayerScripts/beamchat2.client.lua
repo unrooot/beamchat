@@ -120,7 +120,7 @@ end)
 
 beamchat.MouseLeave:connect(function()
 	effects.fade(chatbox, 0.25, {BackgroundTransparency = 1, ScrollBarImageTransparency = 1})
-	effects.fade(chatbar, 0.25, {BackgroundTransparency = 1})
+	effects.fade(chatbar, 0.25, {BackgroundTransparency = chatbar.input:IsFocused() and 0.3 or 1})
 end)
 
 -- clicking to chat

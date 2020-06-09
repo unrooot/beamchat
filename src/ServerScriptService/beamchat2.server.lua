@@ -57,19 +57,23 @@ remotes.chat.OnServerEvent:connect(function(plr, msg)
 		local filtered = chat:FilterStringAsync(sanitize(msg), plr, plr)
 
 		if type == "general" then
-			remotes.chat:FireAllClients({user = plr, message = filtered, type = type})
+			local chatData = {user = plr.Name, message = filtered, type = type}
+			remotes.chat:FireAllClients(chatData)
+
 			if config.bubbleChat then
 				chat:Chat(plr.Character.Head, filtered, 3)
 			end
 		elseif type == "whisper" then
 			local parameters = split(msg, " ")
-			if players[parameters[2]] then
+			if players:FindFirstChild(parameters[2]) then
 				local target = players[parameters[2]]
 				local content = sub(filtered, 3 + target.Name + 1)
 
+				local chatData = {user = plr.Name, message = content, type = type, target = target.Name}
+
 				-- send the message to both the sender and receiver
-				remotes.chat:FireClient(plr, {user = plr, message = content, type = type})
-				remotes.chat:FireClient(target, {user = plr, message = content, type = type})
+				remotes.chat:FireClient(plr, chatData)
+				remotes.chat:FireClient(target, chatData)
 			else
 				remotes.chat:FireClient({user = "system", message = "Player not found.", type = "system"})
 			end
