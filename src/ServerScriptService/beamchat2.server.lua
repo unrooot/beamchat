@@ -12,9 +12,10 @@ local resources = script.Parent:WaitForChild("resources")
 local config = require(script.Parent:WaitForChild("serverConfig"))
 
 -- initialization
-local sub = string.sub
+local len = string.len
 local lower = string.lower
 local split = string.split
+local sub = string.sub
 
 local timestamps = setmetatable({}, {
 	__index = function()
@@ -67,7 +68,7 @@ remotes.chat.OnServerEvent:connect(function(plr, msg)
 			local parameters = split(msg, " ")
 			if players:FindFirstChild(parameters[2]) then
 				local target = players[parameters[2]]
-				local content = sub(filtered, 3 + target.Name + 1)
+				local content = sub(filtered, 3 + len(target.Name) + 1)
 
 				local chatData = {user = plr.Name, message = content, type = type, target = target.Name}
 

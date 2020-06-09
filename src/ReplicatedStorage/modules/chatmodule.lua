@@ -8,9 +8,9 @@ lib.historyPosition = 0
 lib.chatCache = ""
 
 -- services
-local ts = game:GetService("TweenService")
 local txt = game:GetService("TextService")
 local rs = game:GetService("ReplicatedStorage")
+local deb = game:GetService("Debris")
 
 -- initialization
 local beamchatRS = rs:WaitForChild("beamchat")
@@ -29,7 +29,6 @@ local c3w = c3(255, 255, 255)
 local sub = string.sub
 local gsub = string.gsub
 local gmatch = string.gmatch
-local match = string.match
 local len = string.len
 local find = string.find
 local lower = string.lower
@@ -307,6 +306,16 @@ function lib.newMessage(chatData)
 	posY.Parent = container
 	posY.Name = "posY"
 
+	local userSize = txt:GetTextSize(user .. ":", 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 22))
+	local ulabel = Instance.new("TextLabel")
+	ulabel.Parent = container
+	ulabel.BackgroundTransparency = 1
+	ulabel.BorderSizePixel = 0
+	ulabel.Font = Enum.Font.SourceSansBold
+	ulabel.TextSize = 18
+	ulabel.TextColor3 = colors.getColor(user)
+
+	-- set the username after getting the color for formatting
 	if type == "whisper" then
 		local target = chatData.target
 		if target == plr.Name then
@@ -316,14 +325,6 @@ function lib.newMessage(chatData)
 		end
 	end
 
-	local userSize = txt:GetTextSize(user .. ":", 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 22))
-	local ulabel = Instance.new("TextLabel")
-	ulabel.Parent = container
-	ulabel.BackgroundTransparency = 1
-	ulabel.BorderSizePixel = 0
-	ulabel.Font = Enum.Font.SourceSansBold
-	ulabel.TextSize = 18
-	ulabel.TextColor3 = colors.getColor(user)
 	ulabel.Text = user .. ":"
 	ulabel.Size = u2(0, userSize.X, 0, 22)
 	ulabel.TextTransparency = 1
@@ -362,7 +363,7 @@ function lib.newMessage(chatData)
 				effects.fade(v.message.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
 				effects.fade(v.user.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
 
-				game:GetService("Debris"):AddItem(v, 1)
+				deb:AddItem(v, 1)
 			end
 		end
 	end
