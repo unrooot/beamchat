@@ -299,11 +299,9 @@ end
 function lib.correctSize(message)
 	assert(message.ClassName == "Frame", "[chatModule] [correctSize] parameter message must be a frame.")
 
-	print("[chatModule] [correctSize] function called.")
-
 	-- get the new size of the message and resize accordingly
-	local msgSize = txt:GetTextSize(message.message, 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 1000))
-	message.Size = u2(1, 0, 0, msgSize.Y == 18 and 22 or msgSize.Y+2)
+	local msgSize = txt:GetTextSize(message:WaitForChild("message").Text, 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 1000))
+	message.Size = u2(1, 20, 0, msgSize.Y == 18 and 22 or msgSize.Y+2)
 end
 
 -- Create a new message in the chatbox.
@@ -325,6 +323,12 @@ function lib.newMessage(chatData)
 	container.BorderSizePixel = 0
 	container.AnchorPoint = Vector2.new(0, 1)
 	container.Name = "1"
+	container.BackgroundColor3 = c3(150, 150, 150)
+
+	local padding = Instance.new("UIPadding")
+	padding.Parent = container
+	padding.PaddingLeft = UDim.new(0, 10)
+	padding.PaddingRight = UDim.new(0, 10)
 
 	local posY = Instance.new("NumberValue")
 	posY.Parent = container
@@ -371,17 +375,21 @@ function lib.newMessage(chatData)
 	msgLabel.TextYAlignment = Enum.TextYAlignment.Top
 	msgLabel.Name = "message"
 
+	if find(msg, lower(plr.Name)) then
+		container.BackgroundTransparency = 0.6
+	end
+
 	-- resize container
-	container.Size = u2(1, 0, 0, msgSize.Y == 18 and 22 or msgSize.Y+2)
+	container.Size = u2(1, 20, 0, msgSize.Y == 18 and 22 or msgSize.Y+2)
 
 	for _,v in pairs(chatbox:GetChildren()) do
 		if v:IsA("Frame") and v ~= container then
 			v.posY.Value = v.posY.Value - container.Size.Y.Offset
 			v.Name = tonumber(v.Name) + 1
 			if config.chatAnimation == "modern" then
-				v:TweenPosition(u2(0, 0, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset))), "Out", "Quart", 0.25, true)
+				v:TweenPosition(u2(0, -10, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset))), "Out", "Quart", 0.25, true)
 			elseif config.chatAnimation == "classic" then
-				v.Position = u2(0, 0, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset)))
+				v.Position = u2(0, -10, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset)))
 			end
 			if tonumber(v.Name) > config.chatLimit then
 				effects.fade(v.message.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
@@ -392,16 +400,16 @@ function lib.newMessage(chatData)
 		end
 	end
 
-	container.Position = u2(0, 0, 1, container.Size.Y.Offset)
+	container.Position = u2(0, -10, 1, container.Size.Y.Offset)
 	container.Visible  = true
 
 	effects.fade(ulabel, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.7})
 	effects.fade(msgLabel, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.7})
 
 	if config.chatAnimation == "modern" then
-		container:TweenPosition(u2(0, 0, 1, 0), "Out", "Quart", 0.25, true)
+		container:TweenPosition(u2(0, -10, 1, 0), "Out", "Quart", 0.25, true)
 	elseif config.chatAnimation == "classic" then
-		container.Position = u2(0, 0, 1, 0)
+		container.Position = u2(0, -10, 1, 0)
 	end
 
 	local heightSum = 0
@@ -413,9 +421,9 @@ function lib.newMessage(chatData)
 
 	chatbox.CanvasSize = u2(0, 0, 0, heightSum)
 
-	-- if not inContainer then
+	if not lib.inContainer then
 		chatbox.CanvasPosition = Vector2.new(0, chatbox.CanvasSize.Y.Offset)
-	-- end
+	end
 end
 
 return lib

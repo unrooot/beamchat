@@ -106,7 +106,6 @@ local function finalizeSearch()
 			--
 		end
 
-
 		-- don't yield
 		spawn(function()
 			clearResults()
@@ -118,11 +117,13 @@ local function finalizeSearch()
 end
 
 beamchat.MouseEnter:connect(function()
+	chatModule.inContainer = true
 	effects.fade(chatbox, 0.25, {BackgroundTransparency = 0.5, ScrollBarImageTransparency = 0})
 	effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.3})
 end)
 
 beamchat.MouseLeave:connect(function()
+	chatModule.inContainer = false
 	effects.fade(chatbox, 0.25, {BackgroundTransparency = 1, ScrollBarImageTransparency = 1})
 	effects.fade(chatbar, 0.25, {BackgroundTransparency = chatbar.input:IsFocused() and 0.3 or 1})
 end)
