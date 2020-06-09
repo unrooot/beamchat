@@ -323,4 +323,4 @@ remotes:WaitForChild("chat").OnClientEvent:connect(function(chatData)
 	chatModule.newMessage(chatData)
 end)
 
-chatModule.newMessage({user = "[system]", message = "beamchat2 successfully loaded. Chat \"?\" or \"/help\" for a list of commands.", type = "general"})
+chatModule.newSystemMessage("beamchat2 successfully loaded. Chat \"?\" or \"/help\" for a list of commands.")

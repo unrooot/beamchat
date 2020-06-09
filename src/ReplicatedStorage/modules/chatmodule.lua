@@ -325,7 +325,7 @@ function lib.chatbar(sending)
 					if target == "[system]" then
 						lib.newSystemMessage("no 👺")
 					else
-						if target ~= lower(plr.Name) then
+						if target ~= lower(plr.Name) and len(target) >= 3 then
 							local found
 							for _,v in pairs(game.Players:GetPlayers()) do
 								if find(lower(v.Name), target) then
@@ -339,11 +339,13 @@ function lib.chatbar(sending)
 							else
 								lib.newSystemMessage("Player not found.")
 							end
-						else
+						elseif target == plr.Name then
 							lib.newSystemMessage("You can't mute yourself, silly.")
+						else
+							lib.newSystemMessage("Player invalid.")
 						end
 					end
-				elseif sub(lowerS, 0, 7) == "unmute" then
+				elseif sub(lowerS, 0, 7) == "/unmute" then
 					local target = sub(lowerS, 9)
 					local inTable = table.find(lib.muted, target)
 
@@ -365,7 +367,6 @@ function lib.chatbar(sending)
 						(desktop) TAB key - Autocomplete usernames.
 					]]
 
-					-- tbh i forgot multi-line strings existed
 					local helpMessage = "beamchat2, by moonbeam (v2.0)\n—————\n/emojis - See the list of custom emojis.\n/mute {plr} or /unmute {plr} - Mute/unmute a player.\n/mutelist - See the players who you have muted.\n/w {plr} {msg} - Whisper to a player.\n:emoji: - Search for emojis.\n(desktop) TAB key - Autocomplete usernames."
 					lib.newSystemMessage(helpMessage)
 				else
@@ -448,12 +449,17 @@ function lib.newMessage(chatData)
 	ulabel.TextTransparency = 1
 	ulabel.Name = "user"
 
-	local msgSize = txt:GetTextSize(msg, 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 1000))
+	local font = Enum.Font.SourceSans
+	if type == "system" then
+		font = Enum.Font.SourceSansBold
+	end
+
+	local msgSize = txt:GetTextSize(msg, 18, font, Vector2.new(chatbox.AbsoluteSize.X, 1000))
 	local msgLabel = Instance.new("TextLabel")
 	msgLabel.Parent = container
 	msgLabel.BackgroundTransparency = 1
 	msgLabel.BorderSizePixel = 0
-	msgLabel.Font = Enum.Font.SourceSans
+	msgLabel.Font = font
 	msgLabel.TextSize = 18
 	msgLabel.TextColor3 = c3(255, 255, 255)
 	msgLabel.Size = u2(1, 0, 1, 0)
@@ -519,7 +525,7 @@ end
 -- Create a new system message.
 -- @param {string} - The contents of the system's message.
 function lib.newSystemMessage(contents)
-	lib.newMessage({user = "[system]", message = contents, type = "general"})
+	lib.newMessage({user = "[system]", message = contents, type = "system"})
 end
 
 return lib
