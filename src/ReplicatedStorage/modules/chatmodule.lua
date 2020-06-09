@@ -1,11 +1,23 @@
+-- module for chatting, text rendering, etc.
+-- @unrooot
+
 local lib = {}
+
+-- user & emoji searching
 lib.chatbarToggle = false
 lib.searching = nil
 lib.emojiSearch = {}
 
+-- chat history
 lib.chatHistory = {}
 lib.historyPosition = 0
 lib.chatCache = ""
+
+-- used for hovering effects
+lib.inContainer = false
+
+-- table of locally muted players
+lib.muted = {}
 
 -- services
 local txt = game:GetService("TextService")
@@ -255,6 +267,7 @@ function lib.chatbar(sending)
 			-- reset input if sending
 			chatbar.input.Text = ""
 			local sanitized = lib.sanitize(msg)
+
 			if sanitized ~= nil then
 				-- she's good to go!!!!
 				table.insert(lib.chatHistory, sanitized)
@@ -262,6 +275,9 @@ function lib.chatbar(sending)
 				lib.historyPosition = 0
 				lib.chatCache = ""
 
+				local lowerS = lower(sanitized)
+
+				-- local chat commands!
 				if sub(sanitized, 0, 2) == "/e" then
 					local emoteName = lower(sub(sanitized, 4))
 
@@ -278,6 +294,80 @@ function lib.chatbar(sending)
 						plr.Character.Animate.PlayEmote:Invoke(emoteName)
 						plr.Character.Humanoid:PlayEmote(emotes[emoteName])
 					end)
+				elseif sub(lowerS, 0, 9) == "/mutelist" then
+					if #lib.muted == 0 then
+						lib.newSystemMessage("You haven't muted anyone.")
+					else
+						local mutelist = ""
+						for i,v in pairs(lib.muted) do
+							if #lib.muted > 1 and #lib.muted ~= 2 and #lib.muted ~= 0 then
+								if i ~= lib.muted then
+									mutelist = mutelist .. ("%s, "):format(v)
+								else
+									mutelist = mutelist .. ("and %s."):format(v)
+								end
+							elseif #lib.muted == 2 then
+								if i == 1 then
+									mutelist = ("You have muted %s"):format(v)
+								elseif i == 2 then
+									mutelist = mutelist .. ("%s."):format(v)
+								end
+							elseif #lib.muted == 1 then
+								mutelist = ("You have only muted %s."):format(v)
+							end
+						end
+
+						lib.newSystemMessage(mutelist)
+					end
+				elseif sub(lowerS, 0, 5) == "/mute" then
+					local target = sub(lowerS, 7)
+
+					if target == "[system]" then
+						lib.newSystemMessage("no 👺")
+					else
+						if target ~= lower(plr.Name) then
+							local found
+							for _,v in pairs(game.Players:GetPlayers()) do
+								if find(lower(v.Name), target) then
+									found = v.Name
+								end
+							end
+
+							if found then
+								table.insert(lib.muted, found)
+								lib.newSystemMessage(("Muted %s."):format(found))
+							else
+								lib.newSystemMessage("Player not found.")
+							end
+						else
+							lib.newSystemMessage("You can't mute yourself, silly.")
+						end
+					end
+				elseif sub(lowerS, 0, 7) == "unmute" then
+					local target = sub(lowerS, 9)
+					local inTable = table.find(lib.muted, target)
+
+					if inTable then
+						table.remove(lib.muted, inTable)
+						lib.newSystemMessage("Player unmuted.")
+					else
+						lib.newSystemMessage("You do not have that player muted.")
+					end
+				elseif sub(lowerS, 0, 2) == "/?" or sub(lowerS, 0, 5) == "/help" then
+					--[[
+						beamchat2, by moonbeam (v2.0)
+						—————
+						/emojis - See the list of custom emojis.
+						/mute {plr} or /unmute {plr} - Mute/unmute a player.
+						/mutelist - See the players who you have muted.
+						/w {plr} {msg} - Whisper to a player.
+						:emoji: - Search for emojis.
+						(desktop) TAB key - Autocomplete usernames.
+					]]
+
+					-- tbh i forgot multi-line strings existed
+					local helpMessage = "beamchat2, by moonbeam (v2.0)\n—————\n/emojis - See the list of custom emojis.\n/mute {plr} or /unmute {plr} - Mute/unmute a player.\n/mutelist - See the players who you have muted.\n/w {plr} {msg} - Whisper to a player.\n:emoji: - Search for emojis.\n(desktop) TAB key - Autocomplete usernames."
+					lib.newSystemMessage(helpMessage)
 				else
 					remotes:WaitForChild("chat"):FireServer(sanitized)
 				end
@@ -424,6 +514,12 @@ function lib.newMessage(chatData)
 	if not lib.inContainer then
 		chatbox.CanvasPosition = Vector2.new(0, chatbox.CanvasSize.Y.Offset)
 	end
+end
+
+-- Create a new system message.
+-- @param {string} - The contents of the system's message.
+function lib.newSystemMessage(contents)
+	lib.newMessage({user = "[system]", message = contents, type = "general"})
 end
 
 return lib

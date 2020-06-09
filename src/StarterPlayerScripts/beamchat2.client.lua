@@ -129,7 +129,6 @@ beamchat.MouseLeave:connect(function()
 end)
 
 beamchat:GetPropertyChangedSignal("AbsoluteSize"):connect(function()
-	print("resized")
 	for _,v in pairs(chatbox:GetChildren()) do
 		if v:IsA("Frame") then
 			chatModule.correctSize(v)
