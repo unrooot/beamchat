@@ -67,16 +67,6 @@ end
 
 chatbar.label.Visible = true
 
-local function clearResults()
-	chatModule.searching = nil
-	local res = chatbar:FindFirstChild("results")
-	if res then
-		res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
-		wait(0.25)
-		res:Destroy()
-	end
-end
-
 local function finalizeSearch()
 	if chatModule.searching then
 		local cbInput = chatbar.input.Text
@@ -108,7 +98,7 @@ local function finalizeSearch()
 
 		-- don't yield
 		spawn(function()
-			clearResults()
+			chatModule.clearResults()
 		end)
 
 		game:GetService("RunService").RenderStepped:wait()
@@ -170,7 +160,7 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 
 		if chatModule.searching then
 			if chatModule.searching.type == "username" then
-				clearResults()
+				chatModule.clearResults()
 			elseif chatModule.searching.type == "emoji" then
 				local str = chatbar.input.Text
 				local lastWord = chatModule.getLastWord(str)
@@ -190,12 +180,12 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 								chatbar.input.Text = sub(str, 0, len(str) - 1)
 								finalizeSearch()
 							else
-								clearResults()
+								chatModule.clearResults()
 							end
 						end
 					end
 				else
-					clearResults()
+					chatModule.clearResults()
 				end
 			end
 		else

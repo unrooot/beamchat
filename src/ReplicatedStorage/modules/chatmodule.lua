@@ -20,9 +20,11 @@ lib.inContainer = false
 lib.muted = {}
 
 -- services
-local txt = game:GetService("TextService")
-local rs = game:GetService("ReplicatedStorage")
+local chat = game:GetService("Chat")
 local deb = game:GetService("Debris")
+local players = game:GetService("Players")
+local rs = game:GetService("ReplicatedStorage")
+local txt = game:GetService("TextService")
 
 -- initialization
 local beamchatRS = rs:WaitForChild("beamchat")
@@ -83,6 +85,16 @@ local function generateResultsFrame()
 	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 	return resultsFrame
+end
+
+function lib.clearResults()
+	lib.searching = nil
+	local res = chatbar:FindFirstChild("results")
+	if res then
+		res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
+		wait(0.25)
+		res:Destroy()
+	end
 end
 
 -- Get the last word in a string.
@@ -228,6 +240,15 @@ end
 function lib.sanitize(str)
 	local sanitized = string.gsub(str, "%s+", " ")
 	if sanitized ~= nil and sanitized ~= "" and sanitized ~= " " then
+		-- strip starting and trailing spaces
+		if sub(sanitized, 0, 1) == " " then
+			sanitized = sub(sanitized, 2, len(sanitized))
+		end
+
+		if sub(sanitized, len(sanitized)) == " " then
+			sanitized = sub(sanitized, 0, len(sanitized)-1)
+		end
+
 		return sanitized
 	else
 		return nil
@@ -300,27 +321,39 @@ function lib.chatbar(sending)
 					else
 						local mutelist = ""
 						for i,v in pairs(lib.muted) do
-							if #lib.muted > 1 and #lib.muted ~= 2 and #lib.muted ~= 0 then
-								if i ~= lib.muted then
-									mutelist = mutelist .. ("%s, "):format(v)
-								else
-									mutelist = mutelist .. ("and %s."):format(v)
+							local properCase
+							for _,x in pairs(game.Players:GetPlayers()) do
+								if lower(x.Name) == v then
+									properCase = x.Name
 								end
+							end
+
+							-- more than 2 players muted
+							if #lib.muted > 1 and #lib.muted ~= 2 and #lib.muted ~= 0 then
+								if i == 1 then
+									mutelist = ("You have muted %s, "):format(properCase)
+								elseif i ~= #lib.muted then
+									mutelist = mutelist .. ("%s, "):format(properCase)
+								else
+									mutelist = mutelist .. ("and %s."):format(properCase)
+								end
+							-- only two players muted
 							elseif #lib.muted == 2 then
 								if i == 1 then
-									mutelist = ("You have muted %s"):format(v)
-								elseif i == 2 then
-									mutelist = mutelist .. ("%s."):format(v)
+									mutelist = ("You have muted %s"):format(properCase)
+								else
+									mutelist = mutelist .. (" and %s."):format(properCase)
 								end
-							elseif #lib.muted == 1 then
-								mutelist = ("You have only muted %s."):format(v)
+							-- only 1 player muted
+							else
+								mutelist = ("You have only muted %s."):format(properCase)
 							end
 						end
 
 						lib.newSystemMessage(mutelist)
 					end
 				elseif sub(lowerS, 0, 5) == "/mute" then
-					local target = sub(lowerS, 7)
+					local target = lib.sanitize(sub(lowerS, 7))
 
 					if target == "[system]" then
 						lib.newSystemMessage("no 👺")
@@ -333,13 +366,13 @@ function lib.chatbar(sending)
 								end
 							end
 
-							if found then
-								table.insert(lib.muted, found)
+							if found and not table.find(lib.muted, lower(found)) then
+								table.insert(lib.muted, lower(found))
 								lib.newSystemMessage(("Muted %s."):format(found))
 							else
 								lib.newSystemMessage("Player not found.")
 							end
-						elseif target == plr.Name then
+						elseif target == lower(plr.Name) then
 							lib.newSystemMessage("You can't mute yourself, silly.")
 						else
 							lib.newSystemMessage("Player invalid.")
@@ -367,8 +400,10 @@ function lib.chatbar(sending)
 						(desktop) TAB key - Autocomplete usernames.
 					]]
 
-					local helpMessage = "beamchat2, by moonbeam (v2.0)\n—————\n/emojis - See the list of custom emojis.\n/mute {plr} or /unmute {plr} - Mute/unmute a player.\n/mutelist - See the players who you have muted.\n/w {plr} {msg} - Whisper to a player.\n:emoji: - Search for emojis.\n(desktop) TAB key - Autocomplete usernames."
+					local helpMessage = "beamchat2, by moonbeam (v2.0)\n—————\n/emotes - See the list of custom emotes.\n/mute {plr} or /unmute {plr} - Mute/unmute a player.\n/mutelist - See the players who you have muted.\n/w {plr} {msg} - Whisper to a player.\n:emoji: - Search for emojis.\n(desktop) TAB key - Autocomplete usernames."
 					lib.newSystemMessage(helpMessage)
+				elseif sub(lowerS, 0, 7) == "/emotes" then
+					lib.newSystemMessage("This feature is not currently enabled.")
 				else
 					remotes:WaitForChild("chat"):FireServer(sanitized)
 				end
@@ -397,128 +432,139 @@ end
 
 -- Create a new message in the chatbox.
 -- @param {table} chatData
--- 		{
--- 			user = [string] user, -- the user that sent the message
---			message = [string] message, -- the filtered contents of the user's message.
---			type = [string] type, -- the type of message (can be general or whisper)
--- 			optional target = [string] target -- the person who is receiving the whisper.
--- 		}
+-- {
+-- 		user = [string] user, -- the user that sent the message
+--		message = [string] message, -- the filtered contents of the user's message.
+--		type = [string] type, -- the type of message (can be general or whisper)
+-- 		(optional) target = [string] target -- the person who is receiving the whisper.
+-- }
 function lib.newMessage(chatData)
 	local user = chatData.user
 	local msg = chatData.message
 	local type = chatData.type
 
-	local container = Instance.new("Frame")
-	container.Parent = chatbox
-	container.BackgroundTransparency = 1
-	container.BorderSizePixel = 0
-	container.AnchorPoint = Vector2.new(0, 1)
-	container.Name = "1"
-	container.BackgroundColor3 = c3(150, 150, 150)
+	local muted = false
+	for _,v in pairs(lib.muted) do
+		if v == lower(user) then
+			muted = true
+		end
+	end
 
-	local padding = Instance.new("UIPadding")
-	padding.Parent = container
-	padding.PaddingLeft = UDim.new(0, 10)
-	padding.PaddingRight = UDim.new(0, 10)
+	if not muted then
+		local container = Instance.new("Frame")
+		container.Parent = chatbox
+		container.BackgroundTransparency = 1
+		container.BorderSizePixel = 0
+		container.AnchorPoint = Vector2.new(0, 1)
+		container.Name = "1"
+		container.BackgroundColor3 = c3(150, 150, 150)
 
-	local posY = Instance.new("NumberValue")
-	posY.Parent = container
-	posY.Name = "posY"
+		local padding = Instance.new("UIPadding")
+		padding.Parent = container
+		padding.PaddingLeft = UDim.new(0, 10)
+		padding.PaddingRight = UDim.new(0, 10)
 
-	local userSize = txt:GetTextSize(user .. ":", 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 22))
-	local ulabel = Instance.new("TextLabel")
-	ulabel.Parent = container
-	ulabel.BackgroundTransparency = 1
-	ulabel.BorderSizePixel = 0
-	ulabel.Font = Enum.Font.SourceSansBold
-	ulabel.TextSize = 18
-	ulabel.TextColor3 = colors.getColor(user)
+		local posY = Instance.new("NumberValue")
+		posY.Parent = container
+		posY.Name = "posY"
 
-	-- set the username after getting the color for formatting
-	if type == "whisper" then
-		local target = chatData.target
-		if target == plr.Name then
-			user = "{whisper from} " .. user
+		local userSize = txt:GetTextSize(user .. ":", 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 22))
+		local ulabel = Instance.new("TextLabel")
+		ulabel.Parent = container
+		ulabel.BackgroundTransparency = 1
+		ulabel.BorderSizePixel = 0
+		ulabel.Font = Enum.Font.SourceSansBold
+		ulabel.TextSize = 18
+		ulabel.TextColor3 = colors.getColor(user)
+
+		-- set the username after getting the color for formatting & handle chat bubbles
+		if type == "whisper" then
+			local target = chatData.target
+			if target == plr.Name then
+				user = "{whisper from} " .. user
+			else
+				user = "{whisper to} " .. target
+			end
+		end
+
+		ulabel.Text = user .. ":"
+		ulabel.Size = u2(0, userSize.X, 0, 22)
+		ulabel.TextTransparency = 1
+		ulabel.Name = "user"
+
+		local font = Enum.Font.SourceSans
+		if type == "system" then
+			font = Enum.Font.SourceSansBold
 		else
-			user = "{whisper to} " .. target
+			chat:Chat(players[user].Character.Head, msg, 3)
 		end
-	end
 
-	ulabel.Text = user .. ":"
-	ulabel.Size = u2(0, userSize.X, 0, 22)
-	ulabel.TextTransparency = 1
-	ulabel.Name = "user"
+		local msgSize = txt:GetTextSize(msg, 18, font, Vector2.new(chatbox.AbsoluteSize.X, 1000))
+		local msgLabel = Instance.new("TextLabel")
+		msgLabel.Parent = container
+		msgLabel.BackgroundTransparency = 1
+		msgLabel.BorderSizePixel = 0
+		msgLabel.Font = font
+		msgLabel.TextSize = 18
+		msgLabel.TextColor3 = c3(255, 255, 255)
+		msgLabel.Size = u2(1, 0, 1, 0)
+		msgLabel.Position = u2(0, 0, 0, 2)
+		msgLabel.Text = string.rep(" ", math.floor(userSize.X/3)+2) .. msg
+		msgLabel.TextXAlignment = Enum.TextXAlignment.Left
+		msgLabel.TextTransparency = 1
+		msgLabel.TextWrapped = true
+		msgLabel.TextYAlignment = Enum.TextYAlignment.Top
+		msgLabel.Name = "message"
 
-	local font = Enum.Font.SourceSans
-	if type == "system" then
-		font = Enum.Font.SourceSansBold
-	end
+		if find(msg, lower(plr.Name)) then
+			container.BackgroundTransparency = 0.6
+		end
 
-	local msgSize = txt:GetTextSize(msg, 18, font, Vector2.new(chatbox.AbsoluteSize.X, 1000))
-	local msgLabel = Instance.new("TextLabel")
-	msgLabel.Parent = container
-	msgLabel.BackgroundTransparency = 1
-	msgLabel.BorderSizePixel = 0
-	msgLabel.Font = font
-	msgLabel.TextSize = 18
-	msgLabel.TextColor3 = c3(255, 255, 255)
-	msgLabel.Size = u2(1, 0, 1, 0)
-	msgLabel.Position = u2(0, 0, 0, 2)
-	msgLabel.Text = string.rep(" ", math.floor(userSize.X/3)+2) .. msg
-	msgLabel.TextXAlignment = Enum.TextXAlignment.Left
-	msgLabel.TextTransparency = 1
-	msgLabel.TextWrapped = true
-	msgLabel.TextYAlignment = Enum.TextYAlignment.Top
-	msgLabel.Name = "message"
+		-- resize container
+		container.Size = u2(1, 20, 0, msgSize.Y == 18 and 22 or msgSize.Y+2)
 
-	if find(msg, lower(plr.Name)) then
-		container.BackgroundTransparency = 0.6
-	end
+		for _,v in pairs(chatbox:GetChildren()) do
+			if v:IsA("Frame") and v ~= container then
+				v.posY.Value = v.posY.Value - container.Size.Y.Offset
+				v.Name = tonumber(v.Name) + 1
+				if config.chatAnimation == "modern" then
+					v:TweenPosition(u2(0, -10, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset))), "Out", "Quart", 0.25, true)
+				elseif config.chatAnimation == "classic" then
+					v.Position = u2(0, -10, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset)))
+				end
+				if tonumber(v.Name) > config.chatLimit then
+					effects.fade(v.message.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
+					effects.fade(v.user.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
 
-	-- resize container
-	container.Size = u2(1, 20, 0, msgSize.Y == 18 and 22 or msgSize.Y+2)
-
-	for _,v in pairs(chatbox:GetChildren()) do
-		if v:IsA("Frame") and v ~= container then
-			v.posY.Value = v.posY.Value - container.Size.Y.Offset
-			v.Name = tonumber(v.Name) + 1
-			if config.chatAnimation == "modern" then
-				v:TweenPosition(u2(0, -10, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset))), "Out", "Quart", 0.25, true)
-			elseif config.chatAnimation == "classic" then
-				v.Position = u2(0, -10, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset)))
-			end
-			if tonumber(v.Name) > config.chatLimit then
-				effects.fade(v.message.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
-				effects.fade(v.user.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
-
-				deb:AddItem(v, 1)
+					deb:AddItem(v, 1)
+				end
 			end
 		end
-	end
 
-	container.Position = u2(0, -10, 1, container.Size.Y.Offset)
-	container.Visible  = true
+		container.Position = u2(0, -10, 1, container.Size.Y.Offset)
+		container.Visible  = true
 
-	effects.fade(ulabel, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.7})
-	effects.fade(msgLabel, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.7})
+		effects.fade(ulabel, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.7})
+		effects.fade(msgLabel, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.7})
 
-	if config.chatAnimation == "modern" then
-		container:TweenPosition(u2(0, -10, 1, 0), "Out", "Quart", 0.25, true)
-	elseif config.chatAnimation == "classic" then
-		container.Position = u2(0, -10, 1, 0)
-	end
-
-	local heightSum = 0
-	for _,v in pairs(chatbox:GetChildren()) do
-		if v:IsA("Frame") then
-			heightSum = heightSum + v.AbsoluteSize.Y + 2
+		if config.chatAnimation == "modern" then
+			container:TweenPosition(u2(0, -10, 1, 0), "Out", "Quart", 0.25, true)
+		elseif config.chatAnimation == "classic" then
+			container.Position = u2(0, -10, 1, 0)
 		end
-	end
 
-	chatbox.CanvasSize = u2(0, 0, 0, heightSum)
+		local heightSum = 0
+		for _,v in pairs(chatbox:GetChildren()) do
+			if v:IsA("Frame") then
+				heightSum = heightSum + v.AbsoluteSize.Y + 2
+			end
+		end
 
-	if not lib.inContainer then
-		chatbox.CanvasPosition = Vector2.new(0, chatbox.CanvasSize.Y.Offset)
+		chatbox.CanvasSize = u2(0, 0, 0, heightSum)
+
+		if not lib.inContainer then
+			chatbox.CanvasPosition = Vector2.new(0, chatbox.CanvasSize.Y.Offset)
+		end
 	end
 end
 

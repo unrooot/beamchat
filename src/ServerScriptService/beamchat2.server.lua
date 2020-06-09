@@ -57,12 +57,8 @@ remotes.chat.OnServerEvent:connect(function(plr, msg)
 		local filtered = chat:FilterStringAsync(sanitize(msg), plr, plr)
 
 		if type == "general" then
-			local chatData = {user = plr.Name, message = filtered, type = type}
+			local chatData = {user = plr.Name, message = filtered, type = type, bubbleChat = config.bubbleChat}
 			remotes.chat:FireAllClients(chatData)
-
-			if config.bubbleChat then
-				chat:Chat(plr.Character.Head, filtered, 3)
-			end
 		elseif type == "whisper" then
 			local parameters = split(msg, " ")
 			if players:FindFirstChild(parameters[2]) then
