@@ -87,6 +87,11 @@ local function generateResultsFrame()
 	return resultsFrame
 end
 
+function lib.fadeOut()
+	effects.fade(chatbar.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
+end
+
+-- Clear the search results.
 function lib.clearResults()
 	lib.searching = nil
 	local res = chatbar:FindFirstChild("results")
@@ -279,7 +284,7 @@ function lib.chatbar(sending)
 		-- reset chatbar properties
 		effects.fade(chatbar, 0.25, {BackgroundTransparency = 1})
 		effects.fade(chatbar.input, 0.25, {TextTransparency = 1, Active = false, Visible = false})
-		effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.9, Active = true, Visible = true})
+		effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.85, Active = true, Visible = true})
 		chatbar.label:TweenPosition(u2(0, 0, 0, -10), "Out", "Quart", 0.25, true)
 
 		lib.searching = nil
@@ -390,7 +395,7 @@ function lib.chatbar(sending)
 					end
 				elseif sub(lowerS, 0, 2) == "/?" or sub(lowerS, 0, 5) == "/help" then
 					--[[
-						beamchat2, by moonbeam (v2.0)
+						beamchat2, by moonbeam (v2.1.1)
 						—————
 						/emojis - See the list of custom emojis.
 						/mute {plr} or /unmute {plr} - Mute/unmute a player.
@@ -400,7 +405,7 @@ function lib.chatbar(sending)
 						(desktop) TAB key - Autocomplete usernames.
 					]]
 
-					local helpMessage = "beamchat2, by moonbeam (v2.0)\n—————\n/emotes - See the list of custom emotes.\n/mute {plr} or /unmute {plr} - Mute/unmute a player.\n/mutelist - See the players who you have muted.\n/w {plr} {msg} - Whisper to a player.\n:emoji: - Search for emojis.\n(desktop) TAB key - Autocomplete usernames."
+					local helpMessage = "beamchat2, by moonbeam (v2.1.1)\n—————\n/emotes - See the list of custom emotes.\n/mute {plr} or /unmute {plr} - Mute/unmute a player.\n/mutelist - See the players who you have muted.\n/w {plr} {msg} - Whisper to a player.\n:emoji: - Search for emojis.\n(desktop) TAB key - Autocomplete usernames."
 					lib.newSystemMessage(helpMessage)
 				elseif sub(lowerS, 0, 7) == "/emotes" then
 					lib.newSystemMessage("This feature is not currently enabled.")
@@ -468,7 +473,7 @@ function lib.newMessage(chatData)
 		posY.Parent = container
 		posY.Name = "posY"
 
-		local userSize = txt:GetTextSize(user .. ":", 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 22))
+
 		local ulabel = Instance.new("TextLabel")
 		ulabel.Parent = container
 		ulabel.BackgroundTransparency = 1
@@ -478,16 +483,18 @@ function lib.newMessage(chatData)
 		ulabel.TextColor3 = colors.getColor(user)
 
 		-- set the username after getting the color for formatting & handle chat bubbles
+		local userMsg = user
 		if type == "whisper" then
 			local target = chatData.target
 			if target == plr.Name then
-				user = "{whisper from} " .. user
+				userMsg = "{whisper from} " .. user
 			else
-				user = "{whisper to} " .. target
+				userMsg = "{whisper to} " .. target
 			end
 		end
 
-		ulabel.Text = user .. ":"
+		local userSize = txt:GetTextSize(userMsg .. ":", 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 22))
+		ulabel.Text = userMsg .. ":"
 		ulabel.Size = u2(0, userSize.X, 0, 22)
 		ulabel.TextTransparency = 1
 		ulabel.Name = "user"
@@ -496,7 +503,12 @@ function lib.newMessage(chatData)
 		if type == "system" then
 			font = Enum.Font.SourceSansBold
 		else
-			chat:Chat(players[user].Character.Head, msg, 3)
+			-- just in case ?
+			pcall(function()
+				if chatData.bubbleChat then
+					chat:Chat(players[user].Character.Head, msg, 3)
+				end
+			end)
 		end
 
 		local msgSize = txt:GetTextSize(msg, 18, font, Vector2.new(chatbox.AbsoluteSize.X, 1000))
@@ -533,8 +545,8 @@ function lib.newMessage(chatData)
 					v.Position = u2(0, -10, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset)))
 				end
 				if tonumber(v.Name) > config.chatLimit then
-					effects.fade(v.message.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
-					effects.fade(v.user.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
+					effects.fade(v.message, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
+					effects.fade(v.user, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
 
 					deb:AddItem(v, 1)
 				end

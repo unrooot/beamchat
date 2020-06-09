@@ -67,6 +67,15 @@ end
 
 chatbar.label.Visible = true
 
+local function tryFadeOut()
+	spawn(function()
+		wait(5)
+		if not chatModule.inContainer and not chatbar.input:IsFocused() then
+			chatModule.fadeOut()
+		end
+	end)
+end
+
 local function finalizeSearch()
 	if chatModule.searching then
 		local cbInput = chatbar.input.Text
@@ -91,7 +100,9 @@ local function finalizeSearch()
 				endPos = len(cbInput) - len(last)
 			end
 
-			chatbar.input.Text = sub(cbInput, 0, endPos) .. results[selected][2] .. " "
+			if results[selected] then
+				chatbar.input.Text = sub(cbInput, 0, endPos) .. results[selected][2] .. " "
+			end
 		elseif type == "command" then
 			--
 		end
@@ -110,12 +121,15 @@ beamchat.MouseEnter:connect(function()
 	chatModule.inContainer = true
 	effects.fade(chatbox, 0.25, {BackgroundTransparency = 0.5, ScrollBarImageTransparency = 0})
 	effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.3})
+	effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.85})
 end)
 
 beamchat.MouseLeave:connect(function()
 	chatModule.inContainer = false
 	effects.fade(chatbox, 0.25, {BackgroundTransparency = 1, ScrollBarImageTransparency = 1})
 	effects.fade(chatbar, 0.25, {BackgroundTransparency = chatbar.input:IsFocused() and 0.3 or 1})
+
+	tryFadeOut()
 end)
 
 beamchat:GetPropertyChangedSignal("AbsoluteSize"):connect(function()
@@ -176,11 +190,13 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 							local results = chatModule.searching.results
 							local query = sub(lastWord, 2, #lastWord - 1)
 
-							if query == results[selected][1] then
-								chatbar.input.Text = sub(str, 0, len(str) - 1)
-								finalizeSearch()
-							else
-								chatModule.clearResults()
+							if results[selected] then
+								if query == results[selected][1] then
+									chatbar.input.Text = sub(str, 0, len(str) - 1)
+									finalizeSearch()
+								else
+									chatModule.clearResults()
+								end
 							end
 						end
 					end
@@ -218,9 +234,25 @@ chatbar.input.FocusLost:connect(function(enterPressed)
 	if enterPressed then
 		if not chatModule.searching then
 			chatModule.chatbar(true)
+			typing = false
+			remotes.typing:InvokeServer(typing)
+
+			tryFadeOut()
 		else
-			chatbar.input:CaptureFocus()
+			local results = chatModule.searching.results
+			local selected = chatModule.searching.selected
+
+			if results[selected] then
+				chatbar.input:CaptureFocus()
+			else
+				chatModule.chatbar(true)
+				typing = false
+				remotes.typing:InvokeServer(typing)
+			end
 		end
+	else
+		typing = false
+		remotes.typing:InvokeServer(typing)
 	end
 end)
 
@@ -314,3 +346,4 @@ remotes:WaitForChild("chat").OnClientEvent:connect(function(chatData)
 end)
 
 chatModule.newSystemMessage("beamchat2 successfully loaded. Chat \"?\" or \"/help\" for a list of commands.")
+tryFadeOut()
