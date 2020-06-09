@@ -42,7 +42,6 @@ local function sanitize(str)
 	end
 end
 
-
 remotes.chat.OnServerEvent:connect(function(plr, msg)
 	-- check if the player isn't spamming
 	if timestamps[plr.Name] <= config.maxSpam then
@@ -76,7 +75,7 @@ remotes.chat.OnServerEvent:connect(function(plr, msg)
 				remotes.chat:FireClient(plr, chatData)
 				remotes.chat:FireClient(target, chatData)
 			else
-				remotes.chat:FireClient({user = "system", message = "Player not found.", type = "system"})
+				remotes.chat:FireClient({user = "[system]", message = "Player not found.", type = "system"})
 			end
 		end
 	end

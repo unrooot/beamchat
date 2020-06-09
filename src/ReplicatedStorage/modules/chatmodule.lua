@@ -37,6 +37,7 @@ local plr = game:GetService("Players").LocalPlayer
 local beamchat = plr:WaitForChild("PlayerGui"):WaitForChild("beamchat2"):WaitForChild("main")
 local chatbar, chatbox = beamchat:WaitForChild("chatbar"), beamchat:WaitForChild("chatbox")
 
+-- Generate the frame for any possible search results.
 local function generateResultsFrame()
 	local resultsFrame = Instance.new("Frame", chatbar)
 	resultsFrame.AnchorPoint = Vector2.new(0, 1)
@@ -46,6 +47,7 @@ local function generateResultsFrame()
 	resultsFrame.Name = "results"
 	resultsFrame.Position = u2(0, -10, 0, -10)
 	resultsFrame.ClipsDescendants = true
+	resultsFrame.ZIndex = 3
 
 	local highlight = Instance.new("Frame", resultsFrame)
 	highlight.BackgroundTransparency = 0.85
@@ -87,9 +89,7 @@ function lib.correctBounds(default)
 	end
 end
 
---kkona
-
--- search for players/commands
+-- Search for players/commands.
 function lib.search()
 	local input = chatbar.input.Text
 	local lastWord = lib.getLastWord(input)
@@ -208,7 +208,8 @@ function lib.search()
 	end
 end
 
--- strip newlines and empty whitespace
+-- Strip newlines and empty whitespace from the string.
+-- @param {string} str - the string to sanitize.
 function lib.sanitize(str)
 	local sanitized = string.gsub(str, "%s+", " ")
 	if sanitized ~= nil and sanitized ~= "" and sanitized ~= " " then
@@ -218,7 +219,8 @@ function lib.sanitize(str)
 	end
 end
 
--- toggling the chatbar/sending messages
+-- Toggle the chatbar & message sending.
+-- @param {boolean} sending - Whether or not the message will be sent.
 function lib.chatbar(sending)
 	if not lib.chatbarToggle then
 		lib.correctBounds()
@@ -290,6 +292,23 @@ function lib.chatbar(sending)
 	end
 end
 
+-- Correct the chat entry sizes if the user resizes their screen.
+function lib.correctSize(message)
+	assert(message.ClassName == "Frame", "[chatModule] [correctSize] parameter message must be a frame.")
+
+	-- get the new size of the message and resize accordingly
+	local msgSize = txt:GetTextSize(message.message, 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 1000))
+	message.Size = u2(1, 0, 0, msgSize.Y == 18 and 22 or msgSize.Y+2)
+end
+
+-- Create a new message in the chatbox.
+-- @param {table} chatData
+-- 		{
+-- 			user = [string] user, -- the user that sent the message
+--			message = [string] message, -- the filtered contents of the user's message.
+--			type = [string] type, -- the type of message (can be general or whisper)
+-- 			optional target = [string] target -- the person who is receiving the whisper.
+-- 		}
 function lib.newMessage(chatData)
 	local user = chatData.user
 	local msg = chatData.message
