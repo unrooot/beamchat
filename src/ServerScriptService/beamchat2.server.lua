@@ -63,17 +63,22 @@ remotes.chat.OnServerEvent:connect(function(plr, msg)
 			local parameters = split(msg, " ")
 			if players:FindFirstChild(parameters[2]) then
 				local target = players[parameters[2]]
-				local content = sub(filtered, 3 + len(target.Name) + 1)
+				if target ~= plr then
+					local content = sub(filtered, 3 + len(target.Name) + 1)
+					local chatData = {user = plr.Name, message = content, type = type, target = target.Name}
 
-				local chatData = {user = plr.Name, message = content, type = type, target = target.Name}
-
-				-- send the message to both the sender and receiver
-				remotes.chat:FireClient(plr, chatData)
-				remotes.chat:FireClient(target, chatData)
+					-- send the message to both the sender and receiver
+					remotes.chat:FireClient(plr, chatData)
+					remotes.chat:FireClient(target, chatData)
+				else
+					remotes.chat:FireClient(plr, {user = "[system]", message = "You can't whisper to yourself.", type = "system"})
+				end
 			else
-				remotes.chat:FireClient({user = "[system]", message = "Player not found.", type = "system"})
+				remotes.chat:FireClient(plr, {user = "[system]", message = "Player not found.", type = "system"})
 			end
 		end
+	else
+		remotes.chat:FireClient(plr, {user = "[system]", message = "Please wait before sending another message.", type = "system"})
 	end
 end)
 
