@@ -268,6 +268,7 @@ function lib.chatbar(sending)
 		lib.chatbarToggle = true
 
 		-- chatbar effects
+		effects.fade(chatbox, 0.25, {BackgroundTransparency = 0.5})
 		effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.3})
 		effects.fade(chatbar.input, 0.25, {TextTransparency = 0, Active = true, Visible = true})
 		effects.fade(chatbar.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1, Active = false, Visible = false})
@@ -282,6 +283,7 @@ function lib.chatbar(sending)
 		local msg = chatbar.input.Text
 
 		-- reset chatbar properties
+		effects.fade(chatbox, 0.25, {BackgroundTransparency = 1})
 		effects.fade(chatbar, 0.25, {BackgroundTransparency = 1})
 		effects.fade(chatbar.input, 0.25, {TextTransparency = 1, Active = false, Visible = false})
 		effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.85, Active = true, Visible = true})

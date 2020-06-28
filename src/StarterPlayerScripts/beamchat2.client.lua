@@ -118,18 +118,22 @@ local function finalizeSearch()
 end
 
 beamchat.MouseEnter:connect(function()
-	chatModule.inContainer = true
-	effects.fade(chatbox, 0.25, {BackgroundTransparency = 0.5, ScrollBarImageTransparency = 0})
-	effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.3})
-	effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.85})
+	if not chatModule.chatbarToggle then
+		chatModule.inContainer = true
+		effects.fade(chatbox, 0.25, {BackgroundTransparency = 0.5, ScrollBarImageTransparency = 0})
+		effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.3})
+		effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.85})
+	end
 end)
 
 beamchat.MouseLeave:connect(function()
-	chatModule.inContainer = false
-	effects.fade(chatbox, 0.25, {BackgroundTransparency = 1, ScrollBarImageTransparency = 1})
-	effects.fade(chatbar, 0.25, {BackgroundTransparency = chatbar.input:IsFocused() and 0.3 or 1})
+	if not chatModule.chatbarToggle then
+		chatModule.inContainer = false
+		effects.fade(chatbox, 0.25, {BackgroundTransparency = 1, ScrollBarImageTransparency = 1})
+		effects.fade(chatbar, 0.25, {BackgroundTransparency = chatbar.input:IsFocused() and 0.3 or 1})
 
-	tryFadeOut()
+		tryFadeOut()
+	end
 end)
 
 beamchat:GetPropertyChangedSignal("AbsoluteSize"):connect(function()
@@ -272,10 +276,12 @@ uis.InputBegan:connect(function(input, gpe)
 					finalizeSearch()
 				end
 			elseif input.KeyCode == Enum.KeyCode.Tab then
-				if chatModule.searching then
-					finalizeSearch()
-				else
-					chatModule.search()
+				if chatModule.chatbarToggle then
+					if chatModule.searching then
+						finalizeSearch()
+					else
+						chatModule.search()
+					end
 				end
 			elseif input.KeyCode == Enum.KeyCode.Up or input.KeyCode == Enum.KeyCode.Down then
 				if chatModule.searching then
@@ -302,27 +308,29 @@ uis.InputBegan:connect(function(input, gpe)
 						effects.fade(res:WaitForChild("entries")[chatModule.searching.selected], 0.25, {TextTransparency = 0})
 					end
 				else
-					if input.KeyCode == Enum.KeyCode.Up or input.KeyCode == Enum.KeyCode.Down then
-						local direction = input.KeyCode == Enum.KeyCode.Up and -1 or 1
+					if chatModule.chatbarToggle then
+						if input.KeyCode == Enum.KeyCode.Up or input.KeyCode == Enum.KeyCode.Down then
+							local direction = input.KeyCode == Enum.KeyCode.Up and -1 or 1
 
-						if #chatModule.chatHistory > 0 then
-							if chatModule.historyPosition + direction < 0 then
-								if chatModule.historyPosition ~= 1 then
-									chatModule.chatCache = chatbar.input.Text
-									chatModule.historyPosition = #chatModule.chatHistory
-									chatbar.input.Text = chatModule.chatHistory[chatModule.historyPosition]
-									chatbar.input.CursorPosition = #chatbar.input.Text + 1
-								end
-							elseif chatModule.historyPosition + direction > #chatModule.chatHistory then
-								chatModule.historyPosition = 0
-								chatbar.input.Text = chatModule.chatCache
-								chatbar.input.CursorPosition = #chatbar.input.Text + 1
-							else
-								if chatModule.historyPosition + direction ~= 0 then
-									if chatModule.historyPosition ~= 0 then
-										chatModule.historyPosition = chatModule.historyPosition + direction
+							if #chatModule.chatHistory > 0 then
+								if chatModule.historyPosition + direction < 0 then
+									if chatModule.historyPosition ~= 1 then
+										chatModule.chatCache = chatbar.input.Text
+										chatModule.historyPosition = #chatModule.chatHistory
 										chatbar.input.Text = chatModule.chatHistory[chatModule.historyPosition]
 										chatbar.input.CursorPosition = #chatbar.input.Text + 1
+									end
+								elseif chatModule.historyPosition + direction > #chatModule.chatHistory then
+									chatModule.historyPosition = 0
+									chatbar.input.Text = chatModule.chatCache
+									chatbar.input.CursorPosition = #chatbar.input.Text + 1
+								else
+									if chatModule.historyPosition + direction ~= 0 then
+										if chatModule.historyPosition ~= 0 then
+											chatModule.historyPosition = chatModule.historyPosition + direction
+											chatbar.input.Text = chatModule.chatHistory[chatModule.historyPosition]
+											chatbar.input.CursorPosition = #chatbar.input.Text + 1
+										end
 									end
 								end
 							end
