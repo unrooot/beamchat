@@ -23,6 +23,14 @@ local timestamps = setmetatable({}, {
 	end
 })
 
+-- events
+local chatEvent = Instance.new("RemoteEvent")
+local typing = Instance.new("RemoteFunction")
+chatEvent.Name = "chat"
+typing.Name = "typing"
+chatEvent.Parent = remotes
+typing.Parent = remotes
+
 local function getMessageType(str)
 	local type = "general"
 
@@ -42,7 +50,7 @@ local function sanitize(str)
 	end
 end
 
-remotes.chat.OnServerEvent:connect(function(plr, msg)
+chatEvent.OnServerEvent:connect(function(plr, msg)
 	-- check if the player isn't spamming
 	if timestamps[plr.Name] <= config.maxSpam then
 		-- add an entry to the anit-spam filter
@@ -82,7 +90,7 @@ remotes.chat.OnServerEvent:connect(function(plr, msg)
 	end
 end)
 
-function remotes.typing.OnServerInvoke(plr, status)
+function typing.OnServerInvoke(plr, status)
 	-- we don't want output spammed if someone is dead while typing
 	pcall(function()
 		-- in case we want to change this later
