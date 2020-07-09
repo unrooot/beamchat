@@ -3,7 +3,7 @@
 
 local rs = game:GetService("ReplicatedStorage")
 local ts = game:GetService("TweenService")
-local bc2 = rs:WaitForChild("beamchat2")
+local bc2 = rs:WaitForChild("beamchat")
 local modules = bc2:WaitForChild("emoteAnimations")
 
 local format = string.format

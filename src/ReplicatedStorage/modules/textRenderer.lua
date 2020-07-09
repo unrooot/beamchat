@@ -1,19 +1,26 @@
--- @unrooot, @hlelo_wolrd // text rendering module
+-- @hlelo_wolrd // text rendering module
 -- jun. 24, 2020
 
-local lib = {}
+-- services
 local rs = game:GetService("ReplicatedStorage")
 local text = game:GetService("TextService")
 
+
+-- initialization
+local beamchatRS = rs:WaitForChild("beamchat")
+local modules = beamchatRS:WaitForChild("modules")
+
+local emotes = require(modules:WaitForChild("emotes"))
+local keyframes = require(modules:WaitForChild("keyframes"))
+local effects = require(modules:WaitForChild("effects"))
+
+-- oither
+local lib = {}
 local textData = {}
 
 local u2 = UDim2.new
 local c3 = Color3.fromRGB
 local v2 = Vector2.new
-
-local emotes = require(rs:WaitForChild("emotes"))
-local keyframes = require(rs:WaitForChild("keyframes"))
-local effects = require(rs:WaitForChild("effects"))
 
 local function getBounds(source, contents)
 	local fontSize = source.TextSize
@@ -143,7 +150,7 @@ local function updateText(source)
 	textData[source] = {}
 
 	local tempStyle = {}
-	local bold = false
+	local bold, italic = false, false
 
 	for section, modifier in string.gmatch(input .. " {}", "(.-)(\\?%b{})") do
 		local startSpacing = string.match(section, "^%s+")
@@ -172,6 +179,9 @@ local function updateText(source)
 			if modifier == "{b}" then
 				bold = not bold
 				tempStyle.Font = bold and Enum.Font.SourceSansBold or nil
+			elseif modifier == "{i}" then
+				italic = not italic
+				tempStyle.Font = italic and Enum.Font.SourceSansItalic or nil
 			else
 				local r, g, b = string.match(modifier, "{#(%w%w)(%w%w)(%w%w)}")
 				if r and g and b then
