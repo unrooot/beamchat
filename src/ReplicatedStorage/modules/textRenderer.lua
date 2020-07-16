@@ -26,7 +26,7 @@ local function getBounds(source, contents)
 	local fontSize = source.TextSize
 	local font = source.Font
 
-	return text:GetTextSize(contents, fontSize, font, Vector2.new(math.huge, 100))
+	return text:GetTextSize(contents, fontSize, font, Vector2.new(math.huge, 100)) + v2(1,0)
 end
 
 local function addLabel(sourceLabel, newText, style)
