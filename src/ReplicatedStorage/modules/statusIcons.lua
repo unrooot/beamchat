@@ -41,7 +41,7 @@ function module:fetchStatusIcon(id)
 	elseif plr:IsInGroup(groupIDs.admins) then
 		selectedIcon = iconIDs.admin
 	elseif plr:IsInGroup(groupIDs.interns) then
-		selectedIcon = iconIDs.interns
+		selectedIcon = iconIDs.intern
 	elseif plr:IsInGroup(groupIDs.stars) then
 		selectedIcon = iconIDs.star
 	elseif plr.MembershipType == Enum.MembershipType.Premium then
