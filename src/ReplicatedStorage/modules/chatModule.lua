@@ -518,8 +518,13 @@ function lib.newMessage(chatData)
 					v.Position = u2(0, 0, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - label.Size.Y.Offset) - 8))
 				end
 				if tonumber(v.Name) > config.chatLimit then
-					effects.fade(v.message, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
-					effects.fade(v.user, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
+					for _,x in pairs(v:GetDescendants()) do
+						if x:IsA("TextLabel") then
+							effects.fade(x, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
+						elseif x:IsA("ImageLabel") then
+							effects.fade(x, 0.25, {ImageTransparency = 1})
+						end
+					end
 
 					deb:AddItem(v, 1)
 				end
