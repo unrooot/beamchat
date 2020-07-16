@@ -36,6 +36,7 @@ local emoji = require(modules:WaitForChild("emoji"))
 local colors = require(modules:WaitForChild("chatColors"))
 local config = require(modules:WaitForChild("clientConfig"))
 local textRenderer = require(modules:WaitForChild("textRenderer"))
+local statusIcons = require(modules:WaitForChild("statusIcons"))
 
 local c3 = Color3.fromRGB
 local c3w = c3(255, 255, 255)
@@ -477,6 +478,8 @@ function lib.newMessage(chatData)
 		posY.Name = "posY"
 		posY.Parent = label
 
+
+		local preText = ""
 		if type == "whisper" then
 			local formatting
 			local target = chatData.target
@@ -485,14 +488,23 @@ function lib.newMessage(chatData)
 			else
 				formatting = "{whisper to} " .. target
 			end
-
-			label.Text = ("{%s}{b}%s %s{}{}:   "):format(colors.getColor(user), formatting, user)
+			preText = ("{%s}{b}%s %s{}{}:   "):format(colors.getColor(user), formatting, user)
 		elseif type == "general" then
-			label.Text = ("{%s}{b}%s:{}   "):format(colors.getColor(user), user)
+			local iconTag = ""
+			local player = game.Players:FindFirstChild(user)
+			if player then
+				local iconId = statusIcons:fetchStatusIcon(player.UserId)
+				if iconId and iconId ~= "" then
+					iconTag = string.format("{%s} ", iconId)
+				end
+			end
+			local nameTag = ("{%s}{b}%s:{}"):format(colors.getColor(user), user)
+			preText = iconTag .. nameTag .. "   "
+			--preText = ("{%s}{b}%s:{}   "):format(colors.getColor(user), user)
 		elseif type == "system" then
-			label.Text = "{#8ba4b3}{b}[{b}{b}{#65a4f1}system{b}{b}{#8ba4b3}]:{b}{}   "
+			preText = "{#8ba4b3}{b}[{b}{b}{#65a4f1}system{b}{b}{#8ba4b3}]:{b}{}   "
 		end
-
+		label.Text = preText
 		-- text formatting (thanks adrian <3)
 		local cleanText = gsub(msg, "{", "\\{")
 

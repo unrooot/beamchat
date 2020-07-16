@@ -140,6 +140,24 @@ local function addEmote(source, emoteName, emoteData)
 	table.insert(textData[source], {frame, frame.AbsoluteSize})
 end
 
+local function addIcon(source, id)
+	local frame = Instance.new("Frame")
+	frame.AnchorPoint = v2(0, 0.5)
+	frame.BackgroundTransparency = 1
+	frame.Size = u2(0, source.TextSize, 0, source.TextSize)
+	frame.Parent = source
+
+	local img = Instance.new("ImageLabel")
+	img.AnchorPoint = v2(0.5, 0.5)
+	img.Position = u2(0.5, 0, 0.5, 0)
+	img.BackgroundTransparency = 1
+	img.Image = "rbxassetid://" .. id
+	img.Size = u2(0, source.TextSize, 0, source.TextSize)
+	img.Parent = frame
+
+	table.insert(textData[source], {frame, frame.AbsoluteSize})
+end
+
 local function updateText(source)
 	local input = string.gsub(source.Text, "\n", "")
 
@@ -184,12 +202,15 @@ local function updateText(source)
 				tempStyle.Font = italic and Enum.Font.SourceSansItalic or nil
 			else
 				local r, g, b = string.match(modifier, "{#(%w%w)(%w%w)(%w%w)}")
+				local imageId = string.match(modifier, "{rbxassetid://(%d+)}")
 				if r and g and b then
 					local red = (tonumber("0x" .. r) or 0)
 					local green = (tonumber("0x" .. g) or 0)
 					local blue = (tonumber("0x" .. b) or 0)
 
 					tempStyle.TextColor3 = c3(red, green, blue)
+				elseif imageId then
+					addIcon(source, imageId)
 				end
 			end
 		else
