@@ -56,7 +56,7 @@ local chatbar, chatbox = beamchat:WaitForChild("chatbar"), beamchat:WaitForChild
 
 -- Generate the frame for any possible search results.
 local function generateResultsFrame()
-	local resultsFrame = Instance.new("Frame", chatbar)
+	local resultsFrame = Instance.new("Frame")
 	resultsFrame.AnchorPoint = v2(0, 1)
 	resultsFrame.BackgroundColor3 = c3()
 	resultsFrame.BorderSizePixel = 0
@@ -64,8 +64,9 @@ local function generateResultsFrame()
 	resultsFrame.Name = "results"
 	resultsFrame.Position = u2(0, -10, 0, -10)
 	resultsFrame.ClipsDescendants = true
+	resultsFrame.Parent = chatbar
 
-	local highlight = Instance.new("Frame", resultsFrame)
+	local highlight = Instance.new("Frame")
 	highlight.BackgroundTransparency = 0.85
 	highlight.BackgroundColor3 = c3(255, 255, 255)
 	highlight.BorderSizePixel = 0
@@ -73,19 +74,23 @@ local function generateResultsFrame()
 	highlight.Size = u2(1, 0, 0, 26)
 	highlight.Position = u2()
 	highlight.Name = "highlight"
+	highlight.Parent = resultsFrame
 
-	local entries = Instance.new("Frame", resultsFrame)
+	local entries = Instance.new("Frame")
 	entries.BorderSizePixel = 0
 	entries.BackgroundTransparency = 1
 	entries.Size = u2(1, 0, 1, 0)
 	entries.Name = "entries"
+	entries.Parent = resultsFrame
 
-	local padding = Instance.new("UIPadding", entries)
-	padding.PaddingLeft = u2(0, 5)
-	padding.PaddingRight = u2(0, 5)
+	local padding = Instance.new("UIPadding")
+	padding.PaddingLeft = UDim.new(0, 5)
+	padding.PaddingRight = UDim.new(0, 5)
+	padding.Parent = entries
 
-	local listLayout = Instance.new("UIListLayout", entries)
+	local listLayout = Instance.new("UIListLayout")
 	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	listLayout.Parent = entries
 
 	return resultsFrame
 end
@@ -131,7 +136,7 @@ function lib.search()
 
 	if input ~= "" and input ~= nil then
 		pcall(function()
-			if sub(input, 0, 2) ~= "--" and sub(lastWord, 0, 1) ~= ":" then
+			if sub(lastWord, 0, 1) ~= ":" then
 				-- search for players
 				chatbar.input:ReleaseFocus()
 
