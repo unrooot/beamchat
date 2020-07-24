@@ -5,7 +5,6 @@
 local rs = game:GetService("ReplicatedStorage")
 local text = game:GetService("TextService")
 
-
 -- initialization
 local beamchatRS = rs:WaitForChild("beamchat")
 local modules = beamchatRS:WaitForChild("modules")
@@ -42,7 +41,8 @@ local function addLabel(sourceLabel, newText, style)
 	label.TextColor3 = sourceLabel.TextColor3
 	label.TextTruncate = Enum.TextTruncate.AtEnd
 	label.TextSize = sourceLabel.TextSize
-	label.TextStrokeTransparency = 0.7
+	label.TextTransparency = 1
+	label.TextStrokeTransparency = 1
 
 	if style then
 		for prop, val in pairs(style) do

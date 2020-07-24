@@ -142,6 +142,8 @@ beamchat:GetPropertyChangedSignal("AbsoluteSize"):connect(function()
 			chatModule.correctSize(v)
 		end
 	end
+
+	chatModule.alignMessages()
 end)
 
 -- clicking to chat
@@ -339,7 +341,7 @@ uis.InputBegan:connect(function(input, gpe)
 				end
 			end
 		end
-	elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+	elseif input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		if not gpe then
 			if chatModule.chatbarToggle then
 				chatModule.chatbar(false)
@@ -353,5 +355,5 @@ remotes:WaitForChild("chat").OnClientEvent:connect(function(chatData)
 	chatModule.newMessage(chatData)
 end)
 
-chatModule.newSystemMessage("beamchat2 successfully loaded. Chat \"?\" or \"/help\" for a list of commands.")
+chatModule.newSystemMessage("beamchat2 successfully loaded. Chat \"/?\" or \"/help\" for a list of commands.")
 tryFadeOut()

@@ -57,7 +57,7 @@ local chatbar, chatbox = beamchat:WaitForChild("chatbar"), beamchat:WaitForChild
 -- Generate the frame for any possible search results.
 local function generateResultsFrame()
 	local resultsFrame = Instance.new("Frame", chatbar)
-	resultsFrame.AnchorPoint = Vector2.new(0, 1)
+	resultsFrame.AnchorPoint = v2(0, 1)
 	resultsFrame.BackgroundColor3 = c3()
 	resultsFrame.BorderSizePixel = 0
 	resultsFrame.BackgroundTransparency = 0.15
@@ -81,8 +81,8 @@ local function generateResultsFrame()
 	entries.Name = "entries"
 
 	local padding = Instance.new("UIPadding", entries)
-	padding.PaddingLeft = UDim.new(0, 5)
-	padding.PaddingRight = UDim.new(0, 5)
+	padding.PaddingLeft = u2(0, 5)
+	padding.PaddingRight = u2(0, 5)
 
 	local listLayout = Instance.new("UIListLayout", entries)
 	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -118,7 +118,7 @@ function lib.correctBounds(default)
 		chatbar:TweenSize(u2(1, 0, 0, 35), "Out", "Quart", 0.25, true)
 		chatbar.input:TweenSize(u2(1, 0, 0, 17), "Out", "Quart", 0.25, true)
 	else
-		local bounds = txt:GetTextSize(chatbar.input.Text, 17, Enum.Font.SourceSans, Vector2.new(chatbar.input.AbsoluteSize.X, 1000))
+		local bounds = txt:GetTextSize(chatbar.input.Text, 17, Enum.Font.SourceSans, v2(chatbar.input.AbsoluteSize.X, 1000))
 		chatbar:TweenSize(u2(1, 0, 0, bounds.Y + 18), "Out", "Quart", 0.25, true)
 		chatbar.input.Size = u2(1, 0, 0, bounds.Y)
 	end
@@ -140,7 +140,7 @@ function lib.search()
 					if sub(input, (#input - #result) + 1) == result then
 						-- strip @ from string
 						local name = lower(gsub(result, "@", ""))
-						for _,player in pairs(game.Players:GetPlayers()) do
+						for _,player in pairs(players:GetPlayers()) do
 							if find(lower(player.Name), name) then
 								table.insert(matches, player.Name)
 							end
@@ -332,7 +332,7 @@ function lib.chatbar(sending)
 						local mutelist = ""
 						for i,v in pairs(lib.muted) do
 							local properCase
-							for _,x in pairs(game.Players:GetPlayers()) do
+							for _,x in pairs(players:GetPlayers()) do
 								if lower(x.Name) == v then
 									properCase = x.Name
 								end
@@ -370,7 +370,7 @@ function lib.chatbar(sending)
 					else
 						if target ~= lower(plr.Name) and len(target) >= 3 then
 							local found
-							for _,v in pairs(game.Players:GetPlayers()) do
+							for _,v in pairs(players:GetPlayers()) do
 								if find(lower(v.Name), target) then
 									found = v.Name
 								end
@@ -399,8 +399,8 @@ function lib.chatbar(sending)
 						lib.newSystemMessage("You do not have that player muted.")
 					end
 				elseif sub(lowerS, 0, 2) == "/?" or sub(lowerS, 0, 5) == "/help" then
-					--[[
-						beamchat2, by moonbeam (v2.1.1)
+					local helpMessage = [[
+						beamchat2, by moonbeam (v2.2)
 						—————
 						/emojis - See the list of custom emojis.
 						/mute {plr} or /unmute {plr} - Mute/unmute a player.
@@ -410,7 +410,6 @@ function lib.chatbar(sending)
 						(desktop) TAB key - Autocomplete usernames.
 					]]
 
-					local helpMessage = "beamchat2, by moonbeam (v2.1.1)\n—————\n/emotes - See the list of custom emotes.\n/mute {plr} or /unmute {plr} - Mute/unmute a player.\n/mutelist - See the players who you have muted.\n/w {plr} {msg} - Whisper to a player.\n:emoji: - Search for emojis.\n(desktop) TAB key - Autocomplete usernames."
 					lib.newSystemMessage(helpMessage)
 				elseif sub(lowerS, 0, 7) == "/emotes" then
 					lib.newSystemMessage("This feature is not currently enabled.")
@@ -436,8 +435,25 @@ function lib.correctSize(message)
 	assert(message.ClassName == "Frame", "[chatModule] [correctSize] parameter message must be a frame.")
 
 	-- get the new size of the message and resize accordingly
-	local msgSize = txt:GetTextSize(message:WaitForChild("message").Text, 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 1000))
+	local contents = message:WaitForChild("message").Text
+	local msgSize = txt:GetTextSize(contents, 18, Enum.Font.SourceSansBold, v2(chatbox.AbsoluteSize.X, 1000))
 	message.Size = u2(1, 20, 0, msgSize.Y == 18 and 22 or msgSize.Y+2)
+end
+
+-- Re-align all of the messages when the client resizes their screen.
+function lib.alignMessages()
+	local sum = 0
+	for i = 1, (#chatbox:GetChildren() - 1) do
+		local label = chatbox[tostring(i)]
+		if i ~= 1 then
+			label.Position = u2(0, 0, 1, -sum)
+		end
+
+		sum = sum + label.AbsoluteSize.Y + 8
+	end
+
+	chatbox.CanvasSize = u2(0, 0, 0, sum + 8)
+	chatbox.CanvasPosition = v2(0, chatbox.CanvasSize.Y.Offset)
 end
 
 -- Create a new message in the chatbox.
@@ -478,41 +494,41 @@ function lib.newMessage(chatData)
 		posY.Name = "posY"
 		posY.Parent = label
 
-
 		local preText = ""
 		if type == "whisper" then
 			local formatting
 			local target = chatData.target
+
 			if target == plr.Name then
 				formatting = "{whisper from} " .. user
 			else
 				formatting = "{whisper to} " .. target
 			end
-			preText = ("{%s}{b}%s %s{}{}:   "):format(colors.getColor(user), formatting, user)
+
+			preText = ("{%s}{b}%s %s{}{} "):format(colors.getColor(user), formatting, user)
 		elseif type == "general" then
 			local iconTag = ""
-			local player = game.Players:FindFirstChild(user)
+			local player = players:FindFirstChild(user)
+
 			if player then
 				local iconId = statusIcons:fetchStatusIcon(player.UserId)
 				if iconId and iconId ~= "" then
 					iconTag = string.format("{%s} ", iconId)
 				end
 			end
+
 			local nameTag = ("{%s}{b}%s:{}"):format(colors.getColor(user), user)
-			preText = iconTag .. nameTag .. "   "
-			--preText = ("{%s}{b}%s:{}   "):format(colors.getColor(user), user)
+			preText = iconTag .. nameTag .. " "
 		elseif type == "system" then
-			preText = "{#8ba4b3}{b}[{b}{b}{#65a4f1}system{b}{b}{#8ba4b3}]:{b}{}   "
+			preText = "{#8ba4b3}{b}[{b}{b}{#65a4f1}system{b}{b}{#8ba4b3}]:{b}{} "
 		end
+
 		label.Text = preText
+
 		-- text formatting (thanks adrian <3)
 		local cleanText = gsub(msg, "{", "\\{")
-
-		-- italic
-		cleanText = string.gsub(cleanText, "%*%*..-%*%*", function(a) return "{i}"..string.sub(a, 3, #a-2).."{}" end)
-
-		-- bold
-		local formatted = string.gsub(cleanText, "%*..-%*", function(a) return "{b}"..string.sub(a, 3, #a-2).."{}" end)
+		cleanText = string.gsub(cleanText, "%*%*..-%*%*", function(a) return "{i}"..string.sub(a, 3, #a-2).."{}" end) -- italic
+		local formatted = string.gsub(cleanText, "%*..-%*", function(a) return "{b}"..string.sub(a, 3, #a-2).."{}" end) -- bold
 
 		-- append formatted text to final string
 		label.Text = label.Text .. formatted
@@ -524,11 +540,13 @@ function lib.newMessage(chatData)
 			if v:IsA("TextLabel") and v ~= label then
 				v.posY.Value = v.posY.Value - label.Size.Y.Offset - 8
 				v.Name = tonumber(v.Name) + 1
+
 				if config.chatAnimation == "modern" then
 					v:TweenPosition(u2(0, 0, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - label.Size.Y.Offset) - 8)), "Out", "Quart", 0.25, true)
 				elseif config.chatAnimation == "classic" then
 					v.Position = u2(0, 0, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - label.Size.Y.Offset) - 8))
 				end
+
 				if tonumber(v.Name) > config.chatLimit then
 					for _,x in pairs(v:GetDescendants()) do
 						if x:IsA("TextLabel") then
@@ -567,150 +585,13 @@ function lib.newMessage(chatData)
 			end
 		end
 
-		chatbox.CanvasSize = u2(0, 0, 0, heightSum)
+		chatbox.CanvasSize = u2(0, 0, 0, heightSum + 8)
 
 		if not lib.inContainer then
-			chatbox.CanvasPosition = Vector2.new(0, chatbox.CanvasSize.Y.Offset)
+			chatbox.CanvasPosition = v2(0, chatbox.CanvasSize.Y.Offset)
 		end
 	end
 end
-
--- old version (no rich text)
--- function lib.newMessage(chatData)
--- 	local user = chatData.user
--- 	local msg = chatData.message
--- 	local type = chatData.type
-
--- 	local muted = false
--- 	for _,v in pairs(lib.muted) do
--- 		if v == lower(user) then
--- 			muted = true
--- 		end
--- 	end
-
--- 	if not muted then
--- 		local container = Instance.new("Frame")
--- 		container.Parent = chatbox
--- 		container.BackgroundTransparency = 1
--- 		container.BorderSizePixel = 0
--- 		container.AnchorPoint = Vector2.new(0, 1)
--- 		container.Name = "1"
--- 		container.BackgroundColor3 = c3(150, 150, 150)
-
--- 		local padding = Instance.new("UIPadding")
--- 		padding.Parent = container
--- 		padding.PaddingLeft = UDim.new(0, 10)
--- 		padding.PaddingRight = UDim.new(0, 10)
-
--- 		local posY = Instance.new("NumberValue")
--- 		posY.Parent = container
--- 		posY.Name = "posY"
-
--- 		local ulabel = Instance.new("TextLabel")
--- 		ulabel.Parent = container
--- 		ulabel.BackgroundTransparency = 1
--- 		ulabel.BorderSizePixel = 0
--- 		ulabel.Font = Enum.Font.SourceSansBold
--- 		ulabel.TextSize = 18
--- 		ulabel.TextColor3 = colors.getColor(user)
-
--- 		-- set the username after getting the color for formatting & handle chat bubbles
--- 		local userMsg = user
--- 		if type == "whisper" then
--- 			local target = chatData.target
--- 			if target == plr.Name then
--- 				userMsg = "{whisper from} " .. user
--- 			else
--- 				userMsg = "{whisper to} " .. target
--- 			end
--- 		end
-
--- 		local userSize = txt:GetTextSize(userMsg .. ":", 18, Enum.Font.SourceSansBold, Vector2.new(chatbox.AbsoluteSize.X, 22))
--- 		ulabel.Text = userMsg .. ":"
--- 		ulabel.Size = u2(0, userSize.X, 0, 22)
--- 		ulabel.TextTransparency = 1
--- 		ulabel.Name = "user"
-
--- 		local font = Enum.Font.SourceSans
--- 		if type == "system" then
--- 			font = Enum.Font.SourceSansBold
--- 		else
--- 			-- just in case ?
--- 			pcall(function()
--- 				if chatData.bubbleChat then
--- 					chat:Chat(players[user].Character.Head, msg, 3)
--- 				end
--- 			end)
--- 		end
-
--- 		local msgSize = txt:GetTextSize(msg, 18, font, Vector2.new(chatbox.AbsoluteSize.X, 1000))
--- 		local msgLabel = Instance.new("TextLabel")
--- 		msgLabel.Parent = container
--- 		msgLabel.BackgroundTransparency = 1
--- 		msgLabel.BorderSizePixel = 0
--- 		msgLabel.Font = font
--- 		msgLabel.TextSize = 18
--- 		msgLabel.TextColor3 = c3(255, 255, 255)
--- 		msgLabel.Size = u2(1, 0, 1, 0)
--- 		msgLabel.Position = u2(0, 0, 0, 2)
--- 		msgLabel.Text = string.rep(" ", math.floor(userSize.X/3)+2) .. msg
--- 		msgLabel.TextXAlignment = Enum.TextXAlignment.Left
--- 		msgLabel.TextTransparency = 1
--- 		msgLabel.TextWrapped = true
--- 		msgLabel.TextYAlignment = Enum.TextYAlignment.Top
--- 		msgLabel.Name = "message"
-
--- 		if find(msg, lower(plr.Name)) then
--- 			container.BackgroundTransparency = 0.6
--- 		end
-
--- 		-- resize container
--- 		container.Size = u2(1, 20, 0, msgSize.Y == 18 and 22 or msgSize.Y+2)
-
--- 		for _,v in pairs(chatbox:GetChildren()) do
--- 			if v:IsA("Frame") and v ~= container then
--- 				v.posY.Value = v.posY.Value - container.Size.Y.Offset
--- 				v.Name = tonumber(v.Name) + 1
--- 				if config.chatAnimation == "modern" then
--- 					v:TweenPosition(u2(0, -10, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset))), "Out", "Quart", 0.25, true)
--- 				elseif config.chatAnimation == "classic" then
--- 					v.Position = u2(0, -10, 1, (v.posY and v.posY.Value or (v.Position.Y.Offset - container.Size.Y.Offset)))
--- 				end
--- 				if tonumber(v.Name) > config.chatLimit then
--- 					effects.fade(v.message, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
--- 					effects.fade(v.user, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
-
--- 					deb:AddItem(v, 1)
--- 				end
--- 			end
--- 		end
-
--- 		container.Position = u2(0, -10, 1, container.Size.Y.Offset)
--- 		container.Visible  = true
-
--- 		effects.fade(ulabel, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.7})
--- 		effects.fade(msgLabel, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.7})
-
--- 		if config.chatAnimation == "modern" then
--- 			container:TweenPosition(u2(0, -10, 1, 0), "Out", "Quart", 0.25, true)
--- 		elseif config.chatAnimation == "classic" then
--- 			container.Position = u2(0, -10, 1, 0)
--- 		end
-
--- 		local heightSum = 0
--- 		for _,v in pairs(chatbox:GetChildren()) do
--- 			if v:IsA("Frame") then
--- 				heightSum = heightSum + v.AbsoluteSize.Y + 2
--- 			end
--- 		end
-
--- 		chatbox.CanvasSize = u2(0, 0, 0, heightSum)
-
--- 		if not lib.inContainer then
--- 			chatbox.CanvasPosition = Vector2.new(0, chatbox.CanvasSize.Y.Offset)
--- 		end
--- 	end
--- end
 
 -- Create a new system message.
 -- @param {string} - The contents of the system's message.
