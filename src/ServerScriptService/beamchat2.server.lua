@@ -46,7 +46,7 @@ local function getMessageType(str)
 
 	if lower(sub(str, 0, 2)) == "/w" then
 		type = "whisper"
-	elseif lower(sub(str, 0, 2)) == "--" then
+	elseif lower(sub(str, 0, string.len(config.prefix))) == config.prefix then
 		type = "command"
 	end
 
@@ -108,7 +108,7 @@ chatEvent.OnServerEvent:connect(function(plr, msg)
 		elseif type == "command" then
 			for _,v in pairs(config.admins) do
 				if plr.UserId == v then
-					local command = lower(sub(split(filtered, " ")[1], 3))
+					local command = lower(sub(split(filtered, " ")[1], (len(config.prefix) + 1)))
 					local args = split(filtered, " ")
 
 					-- remove the command from the arguments

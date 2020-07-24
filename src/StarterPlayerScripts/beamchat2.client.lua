@@ -103,8 +103,6 @@ local function finalizeSearch()
 			if results[selected] then
 				chatbar.input.Text = sub(cbInput, 0, endPos) .. results[selected][2] .. " "
 			end
-		elseif type == "command" then
-			--
 		end
 
 		-- don't yield
