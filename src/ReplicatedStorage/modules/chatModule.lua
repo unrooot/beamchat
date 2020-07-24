@@ -402,18 +402,7 @@ function lib.chatbar(sending)
 						lib.newSystemMessage("You do not have that player muted.")
 					end
 				elseif sub(lowerS, 0, 2) == "/?" or sub(lowerS, 0, 5) == "/help" then
-					local helpMessage = [[
-						beamchat2, by moonbeam (v2.2)
-						—————
-						/emojis - See the list of custom emojis.
-						/mute {plr} or /unmute {plr} - Mute/unmute a player.
-						/mutelist - See the players who you have muted.
-						/w {plr} {msg} - Whisper to a player.
-						:emoji: - Search for emojis.
-						(desktop) TAB key - Autocomplete usernames.
-					]]
-
-					lib.newSystemMessage(helpMessage)
+					lib.newSystemMessage(config.helpMessage)
 				elseif sub(lowerS, 0, 7) == "/emotes" then
 					lib.newSystemMessage("This feature is not currently enabled.")
 				else
