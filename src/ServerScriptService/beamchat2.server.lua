@@ -24,13 +24,22 @@ local timestamps = setmetatable({}, {
 })
 
 -- events
-local chatEvent = Instance.new("RemoteEvent")
-local typing = Instance.new("RemoteFunction")
-chatEvent.Name = "chat"
-typing.Name = "typing"
-chatEvent.Parent = remotes
-typing.Parent = remotes
+local events = {"chat"}
+local functions = {"typing", "groupCheck"}
 
+for _,v in pairs(events) do
+	local event = Instance.new("RemoteEvent")
+	event.Name = v
+	event.Parent = remotes
+end
+
+for _,v in pairs(functions) do
+	local func = Instance.new("RemoteFunction")
+	func.Name = v
+	func.Parent = remotes
+end
+
+-- function to check the message type
 local function getMessageType(str)
 	local type = "general"
 
@@ -50,6 +59,7 @@ local function sanitize(str)
 	end
 end
 
+local chatEvent = remotes:WaitForChild("chat")
 chatEvent.OnServerEvent:connect(function(plr, msg)
 	-- check if the player isn't spamming
 	if timestamps[plr.Name] <= config.maxSpam then
@@ -90,6 +100,24 @@ chatEvent.OnServerEvent:connect(function(plr, msg)
 	end
 end)
 
+-- checks user groups for the client
+local groupIDs = { admins = 1200769, interns = 2868472, stars = 4199740 }
+local groupCheck = remotes:WaitForChild("groupCheck")
+
+function groupCheck.OnServerInvoke(_, id)
+	local player = players:GetPlayerByUserId(id)
+	if player:IsInGroup(groupIDs.admins) then
+		return groupIDs.admins
+	elseif player:IsInGroup(groupIDs.interns) then
+		return groupIDs.interns
+	elseif player:IsInGroup(groupIDs.stars) then
+		return groupIDs.stars
+	else
+		return 0
+	end
+end
+
+local typing = remotes:WaitForChild("typing")
 function typing.OnServerInvoke(plr, status)
 	-- we don't want output spammed if someone is dead while typing
 	pcall(function()
