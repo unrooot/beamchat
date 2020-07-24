@@ -412,6 +412,10 @@ function lib.chatbar(sending)
 				elseif sub(lowerS, 0, 7) == "/emotes" then
 					lib.newSystemMessage("This feature is not currently enabled.")
 				else
+					if lowerS == "/shrug" then
+						sanitized = "¯\\_(ツ)_/¯"
+					end
+
 					remotes:WaitForChild("chat"):FireServer(sanitized)
 				end
 			end
@@ -525,11 +529,11 @@ function lib.newMessage(chatData)
 
 		-- text formatting (thanks adrian <3)
 		local cleanText = gsub(msg, "{", "\\{")
-		cleanText = string.gsub(cleanText, "%*%*..-%*%*", function(a) return "{i}"..string.sub(a, 3, #a-2).."{}" end) -- italic
-		local formatted = string.gsub(cleanText, "%*..-%*", function(a) return "{b}"..string.sub(a, 3, #a-2).."{}" end) -- bold
+		-- cleanText = string.gsub(cleanText, "%*%*..-%*%*", function(a) return "{i}"..string.sub(a, 3, #a-2).."{}" end) -- italic
+		-- local formatted = string.gsub(cleanText, "%*..-%*", function(a) return "{b}"..string.sub(a, 3, #a-2).."{}" end) -- bold
 
 		-- append formatted text to final string
-		label.Text = label.Text .. formatted
+		label.Text = label.Text .. cleanText
 
 		-- do da magic
 		textRenderer.renderText(label)
