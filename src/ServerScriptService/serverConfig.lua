@@ -11,6 +11,12 @@ local config = {
 
 	-- The lifespan of each message that is stored in the anti-spam table.
 	spamLife = 5;
+
+	-- The table of user ids that will have access to admin commands.
+	admins = {4545223, 209771, 14292629, 59555685};
+
+	-- The users who are banned from entering the server.
+	banned = {};
 }
 
 return config

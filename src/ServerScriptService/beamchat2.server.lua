@@ -10,6 +10,7 @@ local remotes = beamchatRS:WaitForChild("remotes")
 local resources = script.Parent:WaitForChild("resources")
 
 local config = require(script.Parent:WaitForChild("serverConfig"))
+local admin = require(script.Parent:WaitForChild("admin"))
 
 -- initialization
 local len = string.len
@@ -45,6 +46,8 @@ local function getMessageType(str)
 
 	if lower(sub(str, 0, 2)) == "/w" then
 		type = "whisper"
+	elseif lower(sub(str, 0, 2)) == "--" then
+		type = "command"
 	end
 
 	return type
@@ -58,6 +61,14 @@ local function sanitize(str)
 		return nil
 	end
 end
+
+players.PlayerAdded:connect(function(plr)
+	for _,v in pairs(config.banned) do
+		if plr.UserId == v then
+			plr:Kick("You have been banned from this server.")
+		end
+	end
+end)
 
 local chatEvent = remotes:WaitForChild("chat")
 chatEvent.OnServerEvent:connect(function(plr, msg)
@@ -93,6 +104,18 @@ chatEvent.OnServerEvent:connect(function(plr, msg)
 				end
 			else
 				remotes.chat:FireClient(plr, {user = "[system]", message = "Player not found.", type = "system"})
+			end
+		elseif type == "command" then
+			for _,v in pairs(config.admins) do
+				if plr.UserId == v then
+					local command = lower(sub(split(filtered, " ")[1], 3))
+					local args = split(filtered, " ")
+
+					-- remove the command from the arguments
+					table.remove(args, 1)
+
+					admin:runCommand(plr, command, args)
+				end
 			end
 		end
 	else
