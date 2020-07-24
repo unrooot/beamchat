@@ -233,8 +233,6 @@ function lib.search()
 						end
 					end
 				end
-			elseif sub(input, 0, 2) == "--" then
-				print("searching command")
 			end
 		end)
 	else
