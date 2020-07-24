@@ -26,7 +26,6 @@ function admin:runCommand(plr, command, args)
 
 			-- check for things like me, others, all
 			for _,alias in pairs(aliases) do
-				print(lower(args[1]), alias)
 				if lower(args[1]) == alias then
 					aliased = true
 				end
@@ -51,7 +50,7 @@ function admin:runCommand(plr, command, args)
 			else
 				for _,target in pairs(args) do
 					for _,player in pairs(players:GetPlayers()) do
-						if find(player.Name, lower(target)) then
+						if find(lower(player.Name), lower(target)) then
 							table.insert(targets, player)
 						end
 					end
