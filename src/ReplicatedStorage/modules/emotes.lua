@@ -87,10 +87,10 @@ emotes["monkaEyes"] = {
 	size = v2(75, 20)
 }
 
-emotes["HandsUp"] = {
-	image = 5314647195,
-	size = v2(38, 20)
-}
+-- emotes["HandsUp"] = {
+-- 	image = 5314647195,
+-- 	size = v2(38, 20)
+-- }
 
 emotes["PauseChamp"] = {
 	image = 5314647200,
@@ -148,10 +148,10 @@ emotes["FeelsOkayMan"] = {
 	size = v2(32, 32)
 }
 
-emotes["4Head"] = {
-	image = 5314753092,
-	size = v2(16, 24)
-}
+-- emotes["4Head"] = {
+-- 	image = 5314753092,
+-- 	size = v2(16, 24)
+-- }
 
 emotes["fsktK"] = {
 	image = 5314828604,
