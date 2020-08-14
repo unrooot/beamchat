@@ -1,16 +1,17 @@
--- todo: remove filter for leena, automatically replace "fun" with "fuck"
-
 -- services
 local rs = game:GetService("ReplicatedStorage")
 local chat = game:GetService("Chat")
 local players = game:GetService("Players")
 
 local beamchatRS = rs:WaitForChild("beamchat")
-local remotes = beamchatRS:WaitForChild("remotes")
-local resources = script.Parent:WaitForChild("resources")
+local remotes = beamchatRS.remotes
 
-local config = require(script.Parent:WaitForChild("serverConfig"))
-local admin = require(script.Parent:WaitForChild("admin"))
+local resources = script.Parent.resources
+local modules = script.Parent.modules
+
+local config = require(modules.serverConfig)
+local admin = require(modules.admin)
+local chatTags = require(modules.chatTags)
 
 -- initialization
 local len = string.len
@@ -86,7 +87,16 @@ chatEvent.OnServerEvent:connect(function(plr, msg)
 		local filtered = chat:FilterStringAsync(sanitize(msg), plr, plr)
 
 		if type == "general" then
-			local chatData = {user = plr.Name, message = filtered, type = type, bubbleChat = config.bubbleChat}
+			local chatData = {user = plr.Name, message = filtered, type = type, bubbleChat = config.bubbleChat, specialTags = {}}
+
+			for _,v in pairs(chatTags) do
+				for _,id in pairs(v[2]) do
+					if plr.UserId == id then
+						table.insert(chatData.specialTags, v[1])
+					end
+				end
+			end
+
 			remotes.chat:FireAllClients(chatData)
 		elseif type == "whisper" then
 			local parameters = split(msg, " ")
