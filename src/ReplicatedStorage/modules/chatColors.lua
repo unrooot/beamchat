@@ -2,14 +2,14 @@
 
 local colors = {}
 local chatColors = {
-	"#d35454", -- red
-	"#52acff", -- blue
-	"#49ca5f", -- green
-	"#bc69eb", -- purple
-	"#ff8661", -- orange
-	"#fdff50", -- yellow
+	"#fd2943", -- red
+	"#01a2ff", -- blue
+	"#02b857", -- green
+	"#6b327c", -- purple
+	"#da8541", -- orange
+	"#f5cd30", -- yellow
 	"#ff7eb6", -- pink
-	"#d3b79f"  -- tan
+	"#d7c59a", -- tan
 }
 
 local byte = string.byte
