@@ -1,23 +1,23 @@
 -- module for chatting, text rendering, etc.
 -- @unrooot
 
-local lib = {}
+local chatModule = {}
 
 -- user & emoji searching
-lib.chatbarToggle = false
-lib.searching = nil
-lib.emojiSearch = {}
+chatModule.chatbarToggle = false
+chatModule.searching = nil
+chatModule.emojiSearch = {}
 
 -- chat history
-lib.chatHistory = {}
-lib.historyPosition = 0
-lib.chatCache = ""
+chatModule.chatHistory = {}
+chatModule.historyPosition = 0
+chatModule.chatCache = ""
 
 -- used for hovering effects
-lib.inContainer = false
+chatModule.inContainer = false
 
 -- table of locally muted players
-lib.muted = {}
+chatModule.muted = {}
 
 -- services
 local chat = game:GetService("Chat")
@@ -31,12 +31,12 @@ local beamchatRS = rs:WaitForChild("beamchat")
 local modules = beamchatRS:WaitForChild("modules")
 local remotes = beamchatRS:WaitForChild("remotes")
 
-local effects = require(modules:WaitForChild("effects"))
-local emoji = require(modules:WaitForChild("emoji"))
-local colors = require(modules:WaitForChild("chatColors"))
-local config = require(modules:WaitForChild("clientConfig"))
-local textRenderer = require(modules:WaitForChild("textRenderer"))
-local statusIcons = require(modules:WaitForChild("statusIcons"))
+local effects = require(modules.effects)
+local emoji = require(modules.emoji)
+local colors = require(modules.chatColors)
+local config = require(modules.clientConfig)
+local textRenderer = require(modules.textRendere)
+local statusIcons = require(modules.statusIcons)
 
 local c3 = Color3.fromRGB
 local c3w = c3(255, 255, 255)
@@ -95,13 +95,13 @@ local function generateResultsFrame()
 	return resultsFrame
 end
 
-function lib.fadeOut()
+function chatModule.fadeOut()
 	effects.fade(chatbar.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1})
 end
 
 -- Clear the search results.
-function lib.clearResults()
-	lib.searching = nil
+function chatModule.clearResults()
+	chatModule.searching = nil
 	local res = chatbar:FindFirstChild("results")
 	if res then
 		res:TweenSize(u2(1, 20, 0, 0), "Out", "Quart", 0.25, true)
@@ -112,13 +112,13 @@ end
 
 -- Get the last word in a string.
 -- @param {string} queryString - The string to strip the last word from.
-function lib.getLastWord(queryString)
+function chatModule.getLastWord(queryString)
 	return string.gmatch(queryString, "([^%s]+)$")() -- thanks quenty :)
 end
 
 -- Dynamically resize the bounds of the chatbar when typing.
 -- @param {boolean} default - Whether or not the chatbar should reset to its default size.
-function lib.correctBounds(default)
+function chatModule.correctBounds(default)
 	if default then
 		chatbar:TweenSize(u2(1, 0, 0, 35), "Out", "Quart", 0.25, true)
 		chatbar.input:TweenSize(u2(1, 0, 0, 17), "Out", "Quart", 0.25, true)
@@ -130,9 +130,9 @@ function lib.correctBounds(default)
 end
 
 -- Search for players/commands.
-function lib.search()
+function chatModule.search()
 	local input = chatbar.input.Text
-	local lastWord = lib.getLastWord(input)
+	local lastWord = chatModule.getLastWord(input)
 
 	if input ~= "" and input ~= nil then
 		pcall(function()
@@ -178,7 +178,7 @@ function lib.search()
 					end
 
 					resultsFrame:TweenSize(u2(1, 20, 0, #matches*26), "Out", "Quart", 0.25, true)
-					lib.searching = {type = "username", selected = 1, results = matches, last = lastWord}
+					chatModule.searching = {type = "username", selected = 1, results = matches, last = lastWord}
 				elseif #matches == 1 then
 					local finalStr = sub(input, 0, #input - #lastWord) .. matches[1] .. " "
 
@@ -234,7 +234,7 @@ function lib.search()
 
 							-- display results
 							res:TweenSize(u2(1, 20, 0, #results*26), "Out", "Quart", 0.25, true)
-							lib.searching = {type = "emoji", selected = 1, results = results, last = lastWord}
+							chatModule.searching = {type = "emoji", selected = 1, results = results, last = lastWord}
 						end
 					end
 				end
@@ -248,7 +248,7 @@ end
 
 -- Strip newlines and empty whitespace from the string.
 -- @param {string} str - the string to sanitize.
-function lib.sanitize(str)
+function chatModule.sanitize(str)
 	local sanitized = string.gsub(str, "%s+", " ")
 	if sanitized ~= nil and sanitized ~= "" and sanitized ~= " " then
 		-- strip starting and trailing spaces
@@ -268,10 +268,10 @@ end
 
 -- Toggle the chatbar & message sending.
 -- @param {boolean} sending - Whether or not the message will be sent.
-function lib.chatbar(sending)
-	if not lib.chatbarToggle then
-		lib.correctBounds()
-		lib.chatbarToggle = true
+function chatModule.chatbar(sending)
+	if not chatModule.chatbarToggle then
+		chatModule.correctBounds()
+		chatModule.chatbarToggle = true
 
 		-- chatbar effects
 		effects.fade(chatbox, 0.25, {BackgroundTransparency = 0.5})
@@ -284,7 +284,7 @@ function lib.chatbar(sending)
 		wait()
 		chatbar.input:CaptureFocus()
 	else
-		lib.chatbarToggle = false
+		chatModule.chatbarToggle = false
 		-- capture user input
 		local msg = chatbar.input.Text
 
@@ -295,19 +295,19 @@ function lib.chatbar(sending)
 		effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.85, Active = true, Visible = true})
 		chatbar.label:TweenPosition(u2(0, 0, 0, -10), "Out", "Quart", 0.25, true)
 
-		lib.searching = nil
+		chatModule.searching = nil
 
 		if sending then
 			-- reset input if sending
 			chatbar.input.Text = ""
-			local sanitized = lib.sanitize(msg)
+			local sanitized = chatModule.sanitize(msg)
 
 			if sanitized ~= nil then
 				-- she's good to go!!!!
-				table.insert(lib.chatHistory, sanitized)
+				table.insert(chatModule.chatHistory, sanitized)
 
-				lib.historyPosition = 0
-				lib.chatCache = ""
+				chatModule.historyPosition = 0
+				chatModule.chatCache = ""
 
 				local lowerS = lower(sanitized)
 
@@ -329,11 +329,11 @@ function lib.chatbar(sending)
 						plr.Character.Humanoid:PlayEmote(emotes[emoteName])
 					end)
 				elseif sub(lowerS, 0, 9) == "/mutelist" then
-					if #lib.muted == 0 then
-						lib.newSystemMessage("You haven't muted anyone.")
+					if #chatModule.muted == 0 then
+						chatModule.newSystemMessage("You haven't muted anyone.")
 					else
 						local mutelist = ""
-						for i,v in pairs(lib.muted) do
+						for i,v in pairs(chatModule.muted) do
 							local properCase
 							for _,x in pairs(players:GetPlayers()) do
 								if lower(x.Name) == v then
@@ -342,16 +342,16 @@ function lib.chatbar(sending)
 							end
 
 							-- more than 2 players muted
-							if #lib.muted > 1 and #lib.muted ~= 2 and #lib.muted ~= 0 then
+							if #chatModule.muted > 1 and #chatModule.muted ~= 2 and #chatModule.muted ~= 0 then
 								if i == 1 then
 									mutelist = ("You have muted %s, "):format(properCase)
-								elseif i ~= #lib.muted then
+								elseif i ~= #chatModule.muted then
 									mutelist = mutelist .. ("%s, "):format(properCase)
 								else
 									mutelist = mutelist .. ("and %s."):format(properCase)
 								end
 							-- only two players muted
-							elseif #lib.muted == 2 then
+							elseif #chatModule.muted == 2 then
 								if i == 1 then
 									mutelist = ("You have muted %s"):format(properCase)
 								else
@@ -363,13 +363,13 @@ function lib.chatbar(sending)
 							end
 						end
 
-						lib.newSystemMessage(mutelist)
+						chatModule.newSystemMessage(mutelist)
 					end
 				elseif sub(lowerS, 0, 5) == "/mute" then
-					local target = lib.sanitize(sub(lowerS, 7))
+					local target = chatModule.sanitize(sub(lowerS, 7))
 
 					if target == "[system]" then
-						lib.newSystemMessage("no 👺")
+						chatModule.newSystemMessage("no 👺")
 					else
 						if target ~= lower(plr.Name) and len(target) >= 3 then
 							local found
@@ -379,32 +379,32 @@ function lib.chatbar(sending)
 								end
 							end
 
-							if found and not table.find(lib.muted, lower(found)) then
-								table.insert(lib.muted, lower(found))
-								lib.newSystemMessage(("Muted %s."):format(found))
+							if found and not table.find(chatModule.muted, lower(found)) then
+								table.insert(chatModule.muted, lower(found))
+								chatModule.newSystemMessage(("Muted %s."):format(found))
 							else
-								lib.newSystemMessage("Player not found.")
+								chatModule.newSystemMessage("Player not found.")
 							end
 						elseif target == lower(plr.Name) then
-							lib.newSystemMessage("You can't mute yourself, silly.")
+							chatModule.newSystemMessage("You can't mute yourself, silly.")
 						else
-							lib.newSystemMessage("Player invalid.")
+							chatModule.newSystemMessage("Player invalid.")
 						end
 					end
 				elseif sub(lowerS, 0, 7) == "/unmute" then
 					local target = sub(lowerS, 9)
-					local inTable = table.find(lib.muted, target)
+					local inTable = table.find(chatModule.muted, target)
 
 					if inTable then
-						table.remove(lib.muted, inTable)
-						lib.newSystemMessage("Player unmuted.")
+						table.remove(chatModule.muted, inTable)
+						chatModule.newSystemMessage("Player unmuted.")
 					else
-						lib.newSystemMessage("You do not have that player muted.")
+						chatModule.newSystemMessage("You do not have that player muted.")
 					end
 				elseif sub(lowerS, 0, 2) == "/?" or sub(lowerS, 0, 5) == "/help" then
-					lib.newSystemMessage(config.helpMessage)
+					chatModule.newSystemMessage(config.helpMessage)
 				elseif sub(lowerS, 0, 7) == "/emotes" then
-					lib.newSystemMessage("This feature is not currently enabled.")
+					chatModule.newSystemMessage("This feature is not currently enabled.")
 				else
 					if lowerS == "/shrug" then
 						sanitized = "¯\\_(ツ)_/¯"
@@ -427,7 +427,7 @@ function lib.chatbar(sending)
 end
 
 -- Correct the chat entry sizes if the user resizes their screen.
-function lib.correctSize(message)
+function chatModule.correctSize(message)
 	assert(message.ClassName == "Frame", "[chatModule] [correctSize] parameter message must be a frame.")
 
 	-- get the new size of the message and resize accordingly
@@ -437,7 +437,7 @@ function lib.correctSize(message)
 end
 
 -- Re-align all of the messages when the client resizes their screen.
-function lib.alignMessages()
+function chatModule.alignMessages()
 	local sum = 0
 	for i = 1, (#chatbox:GetChildren() - 1) do
 		local label = chatbox[tostring(i)]
@@ -461,13 +461,13 @@ end
 -- 		(optional) target = [string] target -- the person who is receiving the whisper.
 -- }
 
-function lib.newMessage(chatData)
+function chatModule.newMessage(chatData)
 	local user = chatData.user
 	local msg = chatData.message
 	local type = chatData.type
 
 	local muted = false
-	for _,v in pairs(lib.muted) do
+	for _,v in pairs(chatModule.muted) do
 		if v == lower(user) then
 			muted = true
 		end
@@ -603,7 +603,7 @@ function lib.newMessage(chatData)
 
 		chatbox.CanvasSize = u2(0, 0, 0, heightSum + 8)
 
-		if not lib.inContainer then
+		if not chatModule.inContainer then
 			chatbox.CanvasPosition = v2(0, chatbox.CanvasSize.Y.Offset)
 		end
 	end
@@ -611,8 +611,8 @@ end
 
 -- Create a new system message.
 -- @param {string} - The contents of the system's message.
-function lib.newSystemMessage(contents)
-	lib.newMessage({user = "[system]", message = contents, type = "system"})
+function chatModule.newSystemMessage(contents)
+	chatModule.newMessage({user = "[system]", message = contents, type = "system"})
 end
 
-return lib
+return chatModule
