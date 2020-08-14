@@ -14,6 +14,8 @@ local remotes = beamchatRS:WaitForChild("remotes")
 
 local chatModule = require(modules.chatModule)
 local effects = require(modules.effects)
+local emoji = require(modules.emoji)
+local Thread = require(modules.Thread)
 
 -- initialization
 local u2 = UDim2.new
@@ -54,10 +56,10 @@ if uis.TouchEnabled and
 end
 
 local success = pcall(function()
-	canChat = cs:CanUserChatAsync(plr.UserId)
+	chatModule.canChat = cs:CanUserChatAsync(plr.UserId)
 end)
 
-if success and canChat and not isMobile then
+if success and chatModule.canChat and not isMobile then
 	chatbar.label.Text = "press / or click here to chat"
 elseif isMobile then
 	chatbar.label.Text = "tap here to chat"
@@ -68,7 +70,7 @@ end
 chatbar.label.Visible = true
 
 local function tryFadeOut()
-	spawn(function()
+	Thread.Spawn(function()
 		wait(5)
 		if not chatModule.inContainer and not chatbar.input:IsFocused() then
 			chatModule.fadeOut()
@@ -101,12 +103,13 @@ local function finalizeSearch()
 			end
 
 			if results[selected] then
+				chatbar.input.Text = sub(cbInput, 0, len(cbInput) - 1)
 				chatbar.input.Text = sub(cbInput, 0, endPos) .. results[selected][2] .. " "
 			end
 		end
 
 		-- don't yield
-		spawn(function()
+		Thread.Spawn(function()
 			chatModule.clearResults()
 		end)
 
@@ -196,10 +199,20 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 
 							if results[selected] then
 								if query == results[selected][1] then
-									chatbar.input.Text = sub(str, 0, len(str) - 1)
 									finalizeSearch()
 								else
-									chatModule.clearResults()
+									-- check to see if an emoji exists with the name provided
+									local attempt = emoji.map(query)
+									if attempt then
+										chatbar.input.Text = sub(str, 0, len(str) - 1)
+
+										-- override chatModule.searching chatData
+										chatModule.searching.results[selected] = {query, attempt}
+
+										finalizeSearch()
+									else
+										chatModule.clearResults()
+									end
 								end
 							end
 						end
@@ -350,7 +363,9 @@ end)
 
 -- remotes
 remotes:WaitForChild("chat").OnClientEvent:connect(function(chatData)
-	chatModule.newMessage(chatData)
+	if chatModule.canChat then
+		chatModule.newMessage(chatData)
+	end
 end)
 
 chatModule.newSystemMessage("beamchat2 successfully loaded. Chat \"/?\" or \"/help\" for a list of commands.")
