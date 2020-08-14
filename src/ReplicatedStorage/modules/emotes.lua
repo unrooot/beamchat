@@ -208,4 +208,9 @@ emotes["rt"] = {
 	size = v2(20, 20)
 }
 
+emotes["froggers"] = {
+	image = 5494256882,
+	size = v2(28, 28)
+}
+
 return emotes
