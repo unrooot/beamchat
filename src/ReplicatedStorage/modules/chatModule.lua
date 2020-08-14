@@ -474,7 +474,12 @@ function lib.newMessage(chatData)
 	end
 
 	if not muted then
-		local label = Instance.new("TextLabel", chatbox)
+		local player = players:FindFirstChild(user)
+		if player then
+			chat:Chat(player.Character, msg, Enum.ChatColor.White)
+		end
+
+		local label = Instance.new("TextLabel")
 		label.Name = "1"
 		label.BackgroundTransparency = 1
 		label.AnchorPoint = v2(0, 1)
@@ -485,6 +490,17 @@ function lib.newMessage(chatData)
 		label.TextTransparency = 1
 		label.TextTruncate = Enum.TextTruncate.AtEnd
 		label.Parent = chatbox
+
+		if find(lower(msg), lower(plr.Name)) then
+			local highlight = Instance.new("Frame")
+			highlight.Size = u2(1, 10, 1, 8)
+			highlight.Position = u2(0, -5, 0, -4)
+			highlight.BorderSizePixel = 0
+			highlight.BackgroundColor3 = c3w
+			highlight.BackgroundTransparency = 0.85
+			highlight.Name = "highlight"
+			highlight.Parent = label
+		end
 
 		local posY = Instance.new("NumberValue")
 		posY.Name = "posY"
@@ -504,7 +520,6 @@ function lib.newMessage(chatData)
 			preText = ("{%s}{b}%s %s{}{} "):format(colors.getColor(user), formatting, user)
 		elseif type == "general" then
 			local iconTag = ""
-			local player = players:FindFirstChild(user)
 
 			if player then
 				local iconId = statusIcons:fetchStatusIcon(player.UserId)
@@ -513,8 +528,13 @@ function lib.newMessage(chatData)
 				end
 			end
 
+			local specialTags = ""
+			for _,v in pairs(chatData.specialTags) do
+				specialTags = specialTags .. v
+			end
+
 			local nameTag = ("{%s}{b}%s:{}"):format(colors.getColor(user), user)
-			preText = iconTag .. nameTag .. " "
+			preText = iconTag .. specialTags .. nameTag .. " "
 		elseif type == "system" then
 			preText = "{#8ba4b3}{b}[{b}{b}{#65a4f1}system{b}{b}{#8ba4b3}]:{b}{} "
 		end
