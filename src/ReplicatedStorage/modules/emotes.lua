@@ -108,9 +108,10 @@ emotes["BOGGED"] = {
 	size = v2(32, 32)
 }
 
-emotes["REEeee"] = {
-	image = 5314684559,
-	size = v2(32, 32)
+emotes["REE"] = {
+	image = 5555556658,
+	size = v2(28, 28),
+	keyframe = "REE"
 }
 
 emotes["LUL"] = {
