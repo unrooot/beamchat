@@ -9,9 +9,10 @@ local text = game:GetService("TextService")
 local beamchatRS = rs:WaitForChild("beamchat")
 local modules = beamchatRS:WaitForChild("modules")
 
-local emotes = require(modules:WaitForChild("emotes"))
-local keyframes = require(modules:WaitForChild("keyframes"))
-local effects = require(modules:WaitForChild("effects"))
+local emotes = require(modules.emotes)
+local keyframes = require(modules.keyframes)
+local effects = require(modules.effects)
+local Thread = require(modules.Thread)
 
 -- oither
 local lib = {}
@@ -79,7 +80,7 @@ local function positionText(source)
 end
 
 local function animateEmote(img, emoteData)
-	spawn(function()
+	Thread.Spawn(function()
 		keyframes:play(img, emoteData.keyframe)
 	end)
 	return true

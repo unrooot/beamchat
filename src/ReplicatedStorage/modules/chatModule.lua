@@ -35,7 +35,7 @@ local effects = require(modules.effects)
 local emoji = require(modules.emoji)
 local colors = require(modules.chatColors)
 local config = require(modules.clientConfig)
-local textRenderer = require(modules.textRendere)
+local textRenderer = require(modules.textRenderer)
 local statusIcons = require(modules.statusIcons)
 
 local c3 = Color3.fromRGB
@@ -269,160 +269,162 @@ end
 -- Toggle the chatbar & message sending.
 -- @param {boolean} sending - Whether or not the message will be sent.
 function chatModule.chatbar(sending)
-	if not chatModule.chatbarToggle then
-		chatModule.correctBounds()
-		chatModule.chatbarToggle = true
+	if chatModule.canChat then
+		if not chatModule.chatbarToggle then
+			chatModule.correctBounds()
+			chatModule.chatbarToggle = true
 
-		-- chatbar effects
-		effects.fade(chatbox, 0.25, {BackgroundTransparency = 0.5})
-		effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.3})
-		effects.fade(chatbar.input, 0.25, {TextTransparency = 0, Active = true, Visible = true})
-		effects.fade(chatbar.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1, Active = false, Visible = false})
-		chatbar.label:TweenPosition(u2(0.1, 0, 0, -10), "Out", "Quart", 0.25, true)
+			-- chatbar effects
+			effects.fade(chatbox, 0.25, {BackgroundTransparency = 0.5})
+			effects.fade(chatbar, 0.25, {BackgroundTransparency = 0.3})
+			effects.fade(chatbar.input, 0.25, {TextTransparency = 0, Active = true, Visible = true})
+			effects.fade(chatbar.label, 0.25, {TextTransparency = 1, TextStrokeTransparency = 1, Active = false, Visible = false})
+			chatbar.label:TweenPosition(u2(0.1, 0, 0, -10), "Out", "Quart", 0.25, true)
 
-		-- why doesn't it take the renderstepped wait pls?????????
-		wait()
-		chatbar.input:CaptureFocus()
-	else
-		chatModule.chatbarToggle = false
-		-- capture user input
-		local msg = chatbar.input.Text
+			-- why doesn't it take the renderstepped wait pls?????????
+			wait()
+			chatbar.input:CaptureFocus()
+		else
+			chatModule.chatbarToggle = false
+			-- capture user input
+			local msg = chatbar.input.Text
 
-		-- reset chatbar properties
-		effects.fade(chatbox, 0.25, {BackgroundTransparency = 1})
-		effects.fade(chatbar, 0.25, {BackgroundTransparency = 1})
-		effects.fade(chatbar.input, 0.25, {TextTransparency = 1, Active = false, Visible = false})
-		effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.85, Active = true, Visible = true})
-		chatbar.label:TweenPosition(u2(0, 0, 0, -10), "Out", "Quart", 0.25, true)
+			-- reset chatbar properties
+			effects.fade(chatbox, 0.25, {BackgroundTransparency = 1})
+			effects.fade(chatbar, 0.25, {BackgroundTransparency = 1})
+			effects.fade(chatbar.input, 0.25, {TextTransparency = 1, Active = false, Visible = false})
+			effects.fade(chatbar.label, 0.25, {TextTransparency = 0, TextStrokeTransparency = 0.85, Active = true, Visible = true})
+			chatbar.label:TweenPosition(u2(0, 0, 0, -10), "Out", "Quart", 0.25, true)
 
-		chatModule.searching = nil
+			chatModule.searching = nil
 
-		if sending then
-			-- reset input if sending
-			chatbar.input.Text = ""
-			local sanitized = chatModule.sanitize(msg)
+			if sending then
+				-- reset input if sending
+				chatbar.input.Text = ""
+				local sanitized = chatModule.sanitize(msg)
 
-			if sanitized ~= nil then
-				-- she's good to go!!!!
-				table.insert(chatModule.chatHistory, sanitized)
+				if sanitized ~= nil then
+					-- she's good to go!!!!
+					table.insert(chatModule.chatHistory, sanitized)
 
-				chatModule.historyPosition = 0
-				chatModule.chatCache = ""
+					chatModule.historyPosition = 0
+					chatModule.chatCache = ""
 
-				local lowerS = lower(sanitized)
+					local lowerS = lower(sanitized)
 
-				-- local chat commands!
-				if sub(sanitized, 0, 2) == "/e" then
-					local emoteName = lower(sub(sanitized, 4))
+					-- local chat commands!
+					if sub(sanitized, 0, 2) == "/e" then
+						local emoteName = lower(sub(sanitized, 4))
 
-					-- lowercase emote map
-					local emotes = {}
-					local desc = plr.Character.Humanoid:FindFirstChildOfClass("HumanoidDescription")
+						-- lowercase emote map
+						local emotes = {}
+						local desc = plr.Character.Humanoid:FindFirstChildOfClass("HumanoidDescription")
 
-					for x,_ in pairs(desc:GetEmotes()) do
-						emotes[lower(x)] = x
-					end
-
-					-- try playing animation
-					pcall(function()
-						plr.Character.Animate.PlayEmote:Invoke(emoteName)
-						plr.Character.Humanoid:PlayEmote(emotes[emoteName])
-					end)
-				elseif sub(lowerS, 0, 9) == "/mutelist" then
-					if #chatModule.muted == 0 then
-						chatModule.newSystemMessage("You haven't muted anyone.")
-					else
-						local mutelist = ""
-						for i,v in pairs(chatModule.muted) do
-							local properCase
-							for _,x in pairs(players:GetPlayers()) do
-								if lower(x.Name) == v then
-									properCase = x.Name
-								end
-							end
-
-							-- more than 2 players muted
-							if #chatModule.muted > 1 and #chatModule.muted ~= 2 and #chatModule.muted ~= 0 then
-								if i == 1 then
-									mutelist = ("You have muted %s, "):format(properCase)
-								elseif i ~= #chatModule.muted then
-									mutelist = mutelist .. ("%s, "):format(properCase)
-								else
-									mutelist = mutelist .. ("and %s."):format(properCase)
-								end
-							-- only two players muted
-							elseif #chatModule.muted == 2 then
-								if i == 1 then
-									mutelist = ("You have muted %s"):format(properCase)
-								else
-									mutelist = mutelist .. (" and %s."):format(properCase)
-								end
-							-- only 1 player muted
-							else
-								mutelist = ("You have only muted %s."):format(properCase)
-							end
+						for x,_ in pairs(desc:GetEmotes()) do
+							emotes[lower(x)] = x
 						end
 
-						chatModule.newSystemMessage(mutelist)
-					end
-				elseif sub(lowerS, 0, 5) == "/mute" then
-					local target = chatModule.sanitize(sub(lowerS, 7))
-
-					if target == "[system]" then
-						chatModule.newSystemMessage("no 👺")
-					else
-						if target ~= lower(plr.Name) and len(target) >= 3 then
-							local found
-							for _,v in pairs(players:GetPlayers()) do
-								if find(lower(v.Name), target) then
-									found = v.Name
-								end
-							end
-
-							if found and not table.find(chatModule.muted, lower(found)) then
-								table.insert(chatModule.muted, lower(found))
-								chatModule.newSystemMessage(("Muted %s."):format(found))
-							else
-								chatModule.newSystemMessage("Player not found.")
-							end
-						elseif target == lower(plr.Name) then
-							chatModule.newSystemMessage("You can't mute yourself, silly.")
+						-- try playing animation
+						pcall(function()
+							plr.Character.Animate.PlayEmote:Invoke(emoteName)
+							plr.Character.Humanoid:PlayEmote(emotes[emoteName])
+						end)
+					elseif sub(lowerS, 0, 9) == "/mutelist" then
+						if #chatModule.muted == 0 then
+							chatModule.newSystemMessage("You haven't muted anyone.")
 						else
-							chatModule.newSystemMessage("Player invalid.")
+							local mutelist = ""
+							for i,v in pairs(chatModule.muted) do
+								local properCase
+								for _,x in pairs(players:GetPlayers()) do
+									if lower(x.Name) == v then
+										properCase = x.Name
+									end
+								end
+
+								-- more than 2 players muted
+								if #chatModule.muted > 1 and #chatModule.muted ~= 2 and #chatModule.muted ~= 0 then
+									if i == 1 then
+										mutelist = ("You have muted %s, "):format(properCase)
+									elseif i ~= #chatModule.muted then
+										mutelist = mutelist .. ("%s, "):format(properCase)
+									else
+										mutelist = mutelist .. ("and %s."):format(properCase)
+									end
+								-- only two players muted
+								elseif #chatModule.muted == 2 then
+									if i == 1 then
+										mutelist = ("You have muted %s"):format(properCase)
+									else
+										mutelist = mutelist .. (" and %s."):format(properCase)
+									end
+								-- only 1 player muted
+								else
+									mutelist = ("You have only muted %s."):format(properCase)
+								end
+							end
+
+							chatModule.newSystemMessage(mutelist)
 						end
-					end
-				elseif sub(lowerS, 0, 7) == "/unmute" then
-					local target = sub(lowerS, 9)
-					local inTable = table.find(chatModule.muted, target)
+					elseif sub(lowerS, 0, 5) == "/mute" then
+						local target = chatModule.sanitize(sub(lowerS, 7))
 
-					if inTable then
-						table.remove(chatModule.muted, inTable)
-						chatModule.newSystemMessage("Player unmuted.")
+						if target == "[system]" then
+							chatModule.newSystemMessage("no 👺")
+						else
+							if target ~= lower(plr.Name) and len(target) >= 3 then
+								local found
+								for _,v in pairs(players:GetPlayers()) do
+									if find(lower(v.Name), target) then
+										found = v.Name
+									end
+								end
+
+								if found and not table.find(chatModule.muted, lower(found)) then
+									table.insert(chatModule.muted, lower(found))
+									chatModule.newSystemMessage(("Muted %s."):format(found))
+								else
+									chatModule.newSystemMessage("Player not found.")
+								end
+							elseif target == lower(plr.Name) then
+								chatModule.newSystemMessage("You can't mute yourself, silly.")
+							else
+								chatModule.newSystemMessage("Player invalid.")
+							end
+						end
+					elseif sub(lowerS, 0, 7) == "/unmute" then
+						local target = sub(lowerS, 9)
+						local inTable = table.find(chatModule.muted, target)
+
+						if inTable then
+							table.remove(chatModule.muted, inTable)
+							chatModule.newSystemMessage("Player unmuted.")
+						else
+							chatModule.newSystemMessage("You do not have that player muted.")
+						end
+					elseif sub(lowerS, 0, 2) == "/?" or sub(lowerS, 0, 5) == "/help" then
+						chatModule.newSystemMessage(config.helpMessage)
+					elseif sub(lowerS, 0, 7) == "/emotes" then
+						chatModule.newSystemMessage("This feature is not currently enabled.")
 					else
-						chatModule.newSystemMessage("You do not have that player muted.")
-					end
-				elseif sub(lowerS, 0, 2) == "/?" or sub(lowerS, 0, 5) == "/help" then
-					chatModule.newSystemMessage(config.helpMessage)
-				elseif sub(lowerS, 0, 7) == "/emotes" then
-					chatModule.newSystemMessage("This feature is not currently enabled.")
-				else
-					if lowerS == "/shrug" then
-						sanitized = "¯\\_(ツ)_/¯"
-					end
+						if lowerS == "/shrug" then
+							sanitized = "¯\\_(ツ)_/¯"
+						end
 
-					remotes:WaitForChild("chat"):FireServer(sanitized)
+						remotes:WaitForChild("chat"):FireServer(sanitized)
+					end
 				end
 			end
-		end
 
-		local res = chatbar:FindFirstChild("results")
-		if res then
-			res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
-			wait(0.25)
-			res:Destroy()
-		end
+			local res = chatbar:FindFirstChild("results")
+			if res then
+				res:TweenSize(u2(0, res.Size.X.Offset, 0, 0), "Out", "Quart", 0.25, true)
+				wait(0.25)
+				res:Destroy()
+			end
 
-		chatbar.input:ReleaseFocus()
+			chatbar.input:ReleaseFocus()
+		end
 	end
 end
 

@@ -12,6 +12,7 @@ local modules = script.Parent.modules
 local config = require(modules.serverConfig)
 local admin = require(modules.admin)
 local chatTags = require(modules.chatTags)
+local Thread = require(beamchatRS.modules.Thread)
 
 -- initialization
 local len = string.len
@@ -77,7 +78,7 @@ chatEvent.OnServerEvent:connect(function(plr, msg)
 	if timestamps[plr.Name] <= config.maxSpam then
 		-- add an entry to the anit-spam filter
 		timestamps[plr.Name] = timestamps[plr.Name] + 1
-		spawn(function()
+		Thread.Spawn(function()
 			-- take it out after config.spamLife seconds
 			wait(config.spamLife)
 			timestamps[plr.Name] = timestamps[plr.Name] - 1
