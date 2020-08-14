@@ -103,7 +103,6 @@ local function finalizeSearch()
 			end
 
 			if results[selected] then
-				chatbar.input.Text = sub(cbInput, 0, len(cbInput) - 1)
 				chatbar.input.Text = sub(cbInput, 0, endPos) .. results[selected][2] .. " "
 			end
 		end
@@ -199,6 +198,7 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 
 							if results[selected] then
 								if query == results[selected][1] then
+									chatbar.input.Text = sub(str, 0, len(str) - 1)
 									finalizeSearch()
 								else
 									-- check to see if an emoji exists with the name provided
@@ -208,6 +208,7 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 
 										-- override chatModule.searching chatData
 										chatModule.searching.results[selected] = {query, attempt}
+										chatbar.input.Text = sub(str, 0, len(str) - 1)
 
 										finalizeSearch()
 									else
