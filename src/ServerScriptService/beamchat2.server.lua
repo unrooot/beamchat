@@ -42,6 +42,9 @@ for _,v in pairs(functions) do
 	func.Parent = remotes
 end
 
+-- move the client code
+resources.beamchat2_client.Parent = game:GetService("StarterPlayer").StarterPlayerScripts
+
 -- function to check the message type
 local function getMessageType(str)
 	local type = "general"
@@ -70,6 +73,9 @@ players.PlayerAdded:connect(function(plr)
 			plr:Kick("You have been banned from this server.")
 		end
 	end
+
+	local chatGui = resources.beamchat2:Clone()
+	chatGui.Parent = plr:WaitForChild("PlayerGui")
 end)
 
 local chatEvent = remotes:WaitForChild("chat")
