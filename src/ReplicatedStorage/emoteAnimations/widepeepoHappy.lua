@@ -1,6 +1,4 @@
-local rs = game:GetService("ReplicatedStorage")
 local spr = require(script.Parent.Parent:WaitForChild("modules"):WaitForChild("spr"))
-
 local u2 = UDim2.new
 
 local function keyframes(gui)
