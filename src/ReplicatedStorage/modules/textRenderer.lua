@@ -25,18 +25,15 @@ local function getBounds(source, contents)
 	local fontSize = source.TextSize
 	local font = source.Font
 
-	return text:GetTextSize(contents, fontSize, font, Vector2.new(math.huge, 100)) + v2(1,0)
+	return text:GetTextSize(contents, fontSize, font, Vector2.new(math.huge, 100))
 end
 
 local function addLabel(sourceLabel, newText, style)
 	-- used to properly size the label
-	local bounds = getBounds(sourceLabel, newText)
-
 	local label = Instance.new("TextLabel")
 	label.AnchorPoint = v2(0, 0.5)
 	label.BackgroundTransparency = 1
 	label.Font = sourceLabel.Font
-	label.Size = u2(0, bounds.X, 0, bounds.Y)
 	label.Text = newText
 	label.TextColor3 = sourceLabel.TextColor3
 	label.TextTruncate = Enum.TextTruncate.AtEnd
@@ -49,6 +46,9 @@ local function addLabel(sourceLabel, newText, style)
 			label[prop] = val
 		end
 	end
+
+	local bounds = getBounds(label, newText)
+	label.Size = u2(0, bounds.X, 0, bounds.Y)
 
 	label.Parent = sourceLabel
 	table.insert(textData[sourceLabel], {label, bounds})
