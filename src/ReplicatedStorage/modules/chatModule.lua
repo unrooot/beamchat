@@ -33,6 +33,7 @@ local remotes = beamchatRS:WaitForChild("remotes")
 
 local effects = require(modules.effects)
 local emoji = require(modules.emoji)
+local emotes = require(modules.emotes)
 local colors = require(modules.chatColors)
 local config = require(modules.clientConfig)
 local textRenderer = require(modules.textRenderer)
@@ -313,21 +314,22 @@ function chatModule.chatbar(sending)
 					local lowerS = lower(sanitized)
 
 					-- local chat commands!
-					if sub(sanitized, 0, 2) == "/e" then
+					-- todo: migrate to be module based
+					if sub(sanitized, 0, 3) == "/e " then
 						local emoteName = lower(sub(sanitized, 4))
 
 						-- lowercase emote map
-						local emotes = {}
+						local emoteTable = {}
 						local desc = plr.Character.Humanoid:FindFirstChildOfClass("HumanoidDescription")
 
 						for x,_ in pairs(desc:GetEmotes()) do
-							emotes[lower(x)] = x
+							emoteTable[lower(x)] = x
 						end
 
 						-- try playing animation
 						pcall(function()
 							plr.Character.Animate.PlayEmote:Invoke(emoteName)
-							plr.Character.Humanoid:PlayEmote(emotes[emoteName])
+							plr.Character.Humanoid:PlayEmote(emoteTable[emoteName])
 						end)
 					elseif sub(lowerS, 0, 9) == "/mutelist" then
 						if #chatModule.muted == 0 then
@@ -403,9 +405,20 @@ function chatModule.chatbar(sending)
 							chatModule.newSystemMessage("You do not have that player muted.")
 						end
 					elseif sub(lowerS, 0, 2) == "/?" or sub(lowerS, 0, 5) == "/help" then
+						-- todo: move this to be ui based?
 						chatModule.newSystemMessage(config.helpMessage)
 					elseif sub(lowerS, 0, 7) == "/emotes" then
-						chatModule.newSystemMessage("This feature is not currently enabled.")
+						local emoteList = ""
+
+						for name,_ in pairs(emotes) do
+							emoteList = emoteList .. ":" .. name .. ": "
+						end
+
+						chatModule.newSystemMessage("Here are the currently enabled emotes (hover to see names): " .. emoteList)
+					elseif sub(lowerS, 0, 7) == "/modern" then
+						config.chatAnimation = "modern"
+					elseif sub(lowerS, 0, 8) == "/classic" then
+						config.chatAnimation = "classic"
 					else
 						if lowerS == "/shrug" then
 							sanitized = "¯\\_(ツ)_/¯"
@@ -536,9 +549,9 @@ function chatModule.newMessage(chatData)
 			end
 
 			local nameTag = ("{%s}{b}%s:{}"):format(colors.getColor(user), user)
-			preText = iconTag .. specialTags .. nameTag .. " "
+			preText = iconTag .. specialTags .. nameTag .. "  "
 		elseif type == "system" then
-			preText = "{#8ba4b3}{b}[{b}{b}{#65a4f1}system{b}{b}{#8ba4b3}]:{b}{} "
+			preText = "{#8ba4b3}{b}[{b}{b}{#65a4f1}system{b}{b}{#8ba4b3}]:{b}{}  "
 		end
 
 		label.Text = preText
