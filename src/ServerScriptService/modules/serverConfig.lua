@@ -13,7 +13,7 @@ local config = {
 	spamLife = 5;
 
 	-- The prefix for admin commands.
-	prefix = "!";
+	prefix = "--";
 
 	-- The table of user ids that will have access to admin commands.
 	admins = {4545223, 209771, 14292629, 59555685};

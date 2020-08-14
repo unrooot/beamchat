@@ -7,9 +7,9 @@ local admin = {}
 local aliases = {"me", "all", "others"}
 
 -- references
-local commands = script.Parent:WaitForChild("commands")
-local beamchatRS = rs:WaitForChild("beamchat")
-local remotes = beamchatRS:WaitForChild("remotes")
+local commands = script.Parent.Parent.commands
+local beamchatRS = rs.beamchat
+local remotes = beamchatRS.remotes
 
 -- initialization
 local lower = string.lower
