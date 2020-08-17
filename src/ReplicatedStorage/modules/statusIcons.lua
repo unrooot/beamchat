@@ -12,7 +12,7 @@ local plr = players.LocalPlayer
 
 -- ids
 local groupIDs = { admins = 1200769, interns = 2868472, stars = 4199740 }
-local iconIDs = { friends = 4824031110, blocked = 4824030503, premium = 4824031303, admin = 4824030199, intern = 4824065185, star = 4824031541, owner = 4824074645 } -- custom icon: moderator (3477496824)
+local iconIDs = { friends = 4824031110, blocked = 4824030503, premium = 4824031303, admin = 4824030199, intern = 5575476747, star = 4824031541, owner = 4824074645 } -- custom icon: moderator (3477496824)
 
 -- garbage collection
 game.Players.PlayerRemoving:connect(function(exPlayer)
