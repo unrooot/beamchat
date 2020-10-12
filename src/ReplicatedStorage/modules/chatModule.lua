@@ -509,6 +509,10 @@ function chatModule.newMessage(chatData)
 		label.TextTruncate = Enum.TextTruncate.AtEnd
 		label.Parent = chatbox
 
+		if player then
+			label.TextColor3 = colors.getTextColor(player.UserId)
+		end
+
 		if find(lower(msg), lower(plr.Name)) then
 			local highlight = Instance.new("Frame")
 			highlight.Size = u2(1, 10, 1, 8)

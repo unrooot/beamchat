@@ -1,5 +1,7 @@
 -- mostly yoinked from the core chat
 
+local statusIcons = require(script.Parent.statusIcons)
+
 local colors = {}
 local chatColors = {
 	"#fd2943", -- red
@@ -10,6 +12,12 @@ local chatColors = {
 	"#f5cd30", -- yellow
 	"#ff7eb6", -- pink
 	"#d7c59a", -- tan
+}
+
+local messageColors = {
+	Color3.fromRGB(255, 255, 255), -- default
+	Color3.fromRGB(175, 221, 255), -- intern
+	Color3.fromRGB(255, 184, 87),  -- admin
 }
 
 local byte = string.byte
@@ -46,6 +54,23 @@ function colors.getColor(username)
 	end
 
 	return chatColors[(value % #chatColors) + 1]
+end
+
+function colors.getTextColor(uid)
+	if uid then
+		local icon = statusIcons:fetchStatusIcon(uid)
+		if icon then
+			if icon == "rbxassetid://4824030199" then
+				return messageColors[3]
+			elseif icon == "rbxassetid://5575476747" then
+				return messageColors[2]
+			else
+				return messageColors[1]
+			end
+		end
+	else
+		return messageColors[1]
+	end
 end
 
 return colors
