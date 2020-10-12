@@ -10,7 +10,6 @@ local resources = script.Parent.resources
 local modules = script.Parent.modules
 
 local config = require(modules.serverConfig)
-local admin = require(modules.admin)
 local chatTags = require(modules.chatTags)
 local Thread = require(beamchatRS.modules.Thread)
 
@@ -67,7 +66,7 @@ local function sanitize(str)
 	end
 end
 
-players.PlayerAdded:connect(function(plr)
+players.PlayerAdded:Connect(function(plr)
 	for _,v in pairs(config.banned) do
 		if plr.UserId == v then
 			plr:Kick("You have been banned from this server.")
@@ -79,7 +78,7 @@ players.PlayerAdded:connect(function(plr)
 end)
 
 local chatEvent = remotes:WaitForChild("chat")
-chatEvent.OnServerEvent:connect(function(plr, msg)
+chatEvent.OnServerEvent:Connect(function(plr, msg)
 	-- check if the player isn't spamming
 	if timestamps[plr.Name] <= config.maxSpam then
 		-- add an entry to the anit-spam filter
@@ -121,18 +120,6 @@ chatEvent.OnServerEvent:connect(function(plr, msg)
 				end
 			else
 				remotes.chat:FireClient(plr, {user = "[system]", message = "Player not found.", type = "system"})
-			end
-		elseif type == "command" then
-			for _,v in pairs(config.admins) do
-				if plr.UserId == v then
-					local command = lower(sub(split(filtered, " ")[1], (len(config.prefix) + 1)))
-					local args = split(filtered, " ")
-
-					-- remove the command from the arguments
-					table.remove(args, 1)
-
-					admin:runCommand(plr, command, args)
-				end
 			end
 		end
 	else
