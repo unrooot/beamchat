@@ -107,7 +107,7 @@ local function addEmote(source, emoteName, emoteData)
 	label.BackgroundColor3 = c3()
 	label.BackgroundTransparency = 1
 	label.BorderSizePixel = 0
-	label.Font = Enum.Font.SourceSans
+	label.Font = Enum.Font.SourceSansBold
 	label.Position = u2(0.5, 0, 0.5, 0)
 	label.Size = u2(0, nameBounds.X + 10, 1, 0)
 	label.Text = ":" .. emoteName .. ":"

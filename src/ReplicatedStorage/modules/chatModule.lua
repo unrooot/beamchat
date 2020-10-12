@@ -20,7 +20,6 @@ chatModule.inContainer = false
 chatModule.muted = {}
 
 -- services
-local chat = game:GetService("Chat")
 local deb = game:GetService("Debris")
 local players = game:GetService("Players")
 local rs = game:GetService("ReplicatedStorage")
@@ -38,6 +37,7 @@ local colors = require(modules.chatColors)
 local config = require(modules.clientConfig)
 local textRenderer = require(modules.textRenderer)
 local statusIcons = require(modules.statusIcons)
+local bubbleChat = require(modules.bubbleChat)
 
 local c3 = Color3.fromRGB
 local c3w = c3(255, 255, 255)
@@ -493,7 +493,8 @@ function chatModule.newMessage(chatData)
 	if not muted then
 		local player = players:FindFirstChild(user)
 		if player then
-			chat:Chat(player.Character, msg, Enum.ChatColor.White)
+			--chat:Chat(player.Character, msg, Enum.ChatColor.White)
+			bubbleChat.newBubble(player.UserId, msg)
 		end
 
 		local label = Instance.new("TextLabel")
@@ -501,7 +502,7 @@ function chatModule.newMessage(chatData)
 		label.BackgroundTransparency = 1
 		label.AnchorPoint = v2(0, 1)
 		label.Size = u2(1, 0, 0, 22)
-		label.Font = Enum.Font.SourceSans
+		label.Font = Enum.Font.SourceSansBold
 		label.TextColor3 = c3w
 		label.TextSize = 16
 		label.TextTransparency = 1
