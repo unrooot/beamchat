@@ -164,7 +164,7 @@ function chatModule.search()
 							longest = matches[i]
 						end
 
-						local t = Instance.new("TextLabel", resultsFrame.entries)
+						local t = Instance.new("TextLabel")
 						t.BackgroundTransparency = 1
 						t.BorderSizePixel = 0
 						t.ZIndex = 3
@@ -176,6 +176,7 @@ function chatModule.search()
 						t.TextSize = 17
 						t.TextColor3 = c3w
 						t.TextTransparency = i == 1 and 0 or 0.2
+						t.Parent = resultsFrame.entries
 					end
 
 					resultsFrame:TweenSize(u2(1, 20, 0, #matches*26), "Out", "Quart", 0.25, true)
@@ -210,7 +211,7 @@ function chatModule.search()
 
 							-- create results list
 							local function createEmojiEntry(iteration, name, obj)
-								local t = Instance.new("TextLabel", res.entries)
+								local t = Instance.new("TextLabel")
 								t.BackgroundTransparency = 1
 								t.BorderSizePixel = 0
 								t.ZIndex = 3
@@ -222,6 +223,7 @@ function chatModule.search()
 								t.TextSize = 17
 								t.TextColor3 = c3w
 								t.TextTransparency = iteration == 1 and 0 or 0.4
+								t.Parent = res.entries
 							end
 
 							-- iterate through results

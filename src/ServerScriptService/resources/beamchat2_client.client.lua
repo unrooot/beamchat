@@ -32,16 +32,16 @@ local typing = false
 sg:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
 
 local toggle = beamchat.Parent:WaitForChild("toggle")
-toggle.MouseButton1Click:connect(function()
+toggle.MouseButton1Click:Connect(function()
 	beamchat.Visible = not beamchat.Visible
 	toggle.icon.Image = beamchat.Visible and "rbxasset://textures/ui/TopBar/chatOn.png" or "rbxasset://textures/ui/TopBar/chatOff.png"
 end)
 
-toggle.MouseEnter:connect(function()
+toggle.MouseEnter:Connect(function()
 	toggle.ImageTransparency = 0.65
 end)
 
-toggle.MouseLeave:connect(function()
+toggle.MouseLeave:Connect(function()
 	toggle.ImageTransparency = 0.5
 end)
 
@@ -112,12 +112,12 @@ local function finalizeSearch()
 			chatModule.clearResults()
 		end)
 
-		game:GetService("RunService").RenderStepped:wait()
+		game:GetService("RunService").RenderStepped:Wait()
 		chatbar.input:CaptureFocus()
 	end
 end
 
-beamchat.MouseEnter:connect(function()
+beamchat.MouseEnter:Connect(function()
 	if not chatModule.chatbarToggle then
 		chatModule.inContainer = true
 		effects.fade(chatbox, 0.25, {BackgroundTransparency = 0.5, ScrollBarImageTransparency = 0})
@@ -126,7 +126,7 @@ beamchat.MouseEnter:connect(function()
 	end
 end)
 
-beamchat.MouseLeave:connect(function()
+beamchat.MouseLeave:Connect(function()
 	if not chatModule.chatbarToggle then
 		chatModule.inContainer = false
 		effects.fade(chatbox, 0.25, {BackgroundTransparency = 1, ScrollBarImageTransparency = 1})
@@ -136,7 +136,7 @@ beamchat.MouseLeave:connect(function()
 	end
 end)
 
-beamchat:GetPropertyChangedSignal("AbsoluteSize"):connect(function()
+beamchat:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 	for _,v in pairs(chatbox:GetChildren()) do
 		if v:IsA("Frame") then
 			chatModule.correctSize(v)
@@ -147,25 +147,25 @@ beamchat:GetPropertyChangedSignal("AbsoluteSize"):connect(function()
 end)
 
 -- clicking to chat
-chatbar.label.MouseButton1Click:connect(function()
+chatbar.label.MouseButton1Click:Connect(function()
 	if not chatModule.chatbarToggle then
 		chatModule.chatbar()
 	end
 end)
 
 -- resizing the chatbar
-chatbar.input:GetPropertyChangedSignal("TextBounds"):connect(function()
+chatbar.input:GetPropertyChangedSignal("TextBounds"):Connect(function()
 	chatModule.correctBounds()
 end)
 
-chatbar.input:GetPropertyChangedSignal("TextFits"):connect(function()
+chatbar.input:GetPropertyChangedSignal("TextFits"):Connect(function()
 	if not chatbar.input.TextFits then
 		chatModule.correctBounds()
 	end
 end)
 
 -- typing updates
-chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
+chatbar.input:GetPropertyChangedSignal("Text"):Connect(function()
 	if len(chatbar.input.Text) <= 200 then
 		if len(chatbar.input.Text) >= 1 then
 			-- prevent from firing every time we type
@@ -246,7 +246,7 @@ chatbar.input:GetPropertyChangedSignal("Text"):connect(function()
 end)
 
 -- chatbar events
-chatbar.input.FocusLost:connect(function(enterPressed)
+chatbar.input.FocusLost:Connect(function(enterPressed)
 	chatModule.correctBounds(true)
 
 	if enterPressed then
@@ -275,12 +275,12 @@ chatbar.input.FocusLost:connect(function(enterPressed)
 end)
 
 -- keyboard controls
-uis.InputBegan:connect(function(input, gpe)
+uis.InputBegan:Connect(function(input, gpe)
 	if input.UserInputType == Enum.UserInputType.Keyboard then
 		if not gpe then
 			if input.KeyCode == Enum.KeyCode.Slash then
 				if not chatModule.chatbarToggle then
-					game:GetService("RunService").RenderStepped:wait()
+					game:GetService("RunService").RenderStepped:Wait()
 					chatModule.chatbar()
 				end
 			end
@@ -363,7 +363,7 @@ uis.InputBegan:connect(function(input, gpe)
 end)
 
 -- remotes
-remotes:WaitForChild("chat").OnClientEvent:connect(function(chatData)
+remotes:WaitForChild("chat").OnClientEvent:Connect(function(chatData)
 	if chatModule.canChat then
 		chatModule.newMessage(chatData)
 	end

@@ -118,11 +118,11 @@ local function addEmote(source, emoteName, emoteData)
 	label.ZIndex = 2
 	label.Parent = frame
 
-	frame.MouseEnter:connect(function()
+	frame.MouseEnter:Connect(function()
 		effects.fade(label, 0.25, {BackgroundTransparency = 0.4, TextTransparency = 0, TextStrokeTransparency = 0.9})
 	end)
 
-	frame.MouseLeave:connect(function()
+	frame.MouseLeave:Connect(function()
 		effects.fade(label, 0.25, {BackgroundTransparency = 1, TextTransparency = 1, TextStrokeTransparency = 1})
 	end)
 
@@ -130,7 +130,7 @@ local function addEmote(source, emoteName, emoteData)
 	if emoteData.keyframe then
 		animateEmote(img, emoteData)
 		local deb = false
-		img.MouseEnter:connect(function()
+		img.MouseEnter:Connect(function()
 			if not deb then
 				deb = true
 				animateEmote(img, emoteData)
@@ -227,11 +227,11 @@ function lib.renderText(sourceLabel)
 	textData[sourceLabel] = {}
 	updateText(sourceLabel)
 
-	sourceLabel:GetPropertyChangedSignal("AbsoluteSize"):connect(function()
+	sourceLabel:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 		positionText(sourceLabel)
 	end)
 
-	sourceLabel:GetPropertyChangedSignal("Text"):connect(function()
+	sourceLabel:GetPropertyChangedSignal("Text"):Connect(function()
 		updateText(sourceLabel)
 	end)
 end
