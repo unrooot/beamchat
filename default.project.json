@@ -1,0 +1,36 @@
+{
+	"name": "beamchat3",
+	"tree": {
+		"$className": "DataModel",
+		"HttpService": {
+			"$className": "HttpService",
+			"$properties": {
+				"HttpEnabled": true
+			}
+		},
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"beamchat": {
+				"$path": "src/loader/"
+			}
+		},
+		"ServerScriptService":{
+			"$className": "ServerScriptService",
+			"beamchat3": {
+				"$path": "src/modules",
+				"Scripts": {
+					"$path": "src/scripts/Server"
+				}
+			}
+		},
+		"StarterPlayer": {
+			"$className": "StarterPlayer",
+			"StarterPlayerScripts": {
+				"$className": "StarterPlayerScripts",
+				"Main": {
+					"$path": "src/scripts/Client"
+				}
+			}
+		}
+	}
+}
