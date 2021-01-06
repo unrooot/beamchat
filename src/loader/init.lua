@@ -28,10 +28,10 @@ local MyOtherModule = require(script.MyOtherModule)
 ```
 ]]
 
-local REPLICATION_FOLDER_NAME = "_replicationFolder"
+local REPLICATION_FOLDER_NAME = "_beamchatReplicationFolder"
 
 --- Set this value to nil if you don't want to load modules by default
-local SERVER_SCRIPT_SERVICE_MODULES = "beamchat3"
+local SERVER_SCRIPT_SERVICE_MODULES = "beamchat"
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -53,7 +53,7 @@ if RunService:IsServer() and RunService:IsClient() or (not RunService:IsRunning(
 	})
 
 	if SERVER_SCRIPT_SERVICE_MODULES then
-		loader:AddModulesFromParent(ServerScriptService:WaitForChild(SERVER_SCRIPT_SERVICE_MODULES))
+		loader:AddModulesFromParent(ServerScriptService:WaitForChild(SERVER_SCRIPT_SERVICE_MODULES):WaitForChild("Modules"))
 	end
 
 	return loader
@@ -73,7 +73,7 @@ elseif RunService:IsServer() then
 		})
 
 	if SERVER_SCRIPT_SERVICE_MODULES then
-		loader:AddModulesFromParent(ServerScriptService:WaitForChild(SERVER_SCRIPT_SERVICE_MODULES))
+		loader:AddModulesFromParent(ServerScriptService:WaitForChild(SERVER_SCRIPT_SERVICE_MODULES):WaitForChild("Modules"))
 	end
 
 	return loader
