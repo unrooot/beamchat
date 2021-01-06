@@ -1,5 +1,5 @@
 {
-	"name": "beamchat3",
+	"name": "beamchat",
 	"tree": {
 		"$className": "DataModel",
 		"HttpService": {
@@ -10,25 +10,19 @@
 		},
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
-			"beamchat": {
+			"BeamchatLoader": {
 				"$path": "src/loader/"
 			}
 		},
 		"ServerScriptService":{
 			"$className": "ServerScriptService",
-			"beamchat3": {
-				"$path": "src/modules",
+			"beamchat": {
+				"$className": "Folder",
+				"Modules": {
+					"$path": "src/beamchat/modules"
+				},
 				"Scripts": {
-					"$path": "src/scripts/Server"
-				}
-			}
-		},
-		"StarterPlayer": {
-			"$className": "StarterPlayer",
-			"StarterPlayerScripts": {
-				"$className": "StarterPlayerScripts",
-				"Main": {
-					"$path": "src/scripts/Client"
+					"$path": "src/beamchat/scripts"
 				}
 			}
 		}
