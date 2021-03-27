@@ -107,19 +107,19 @@ function BeamchatBase:_construct()
 		chatBarFrame.BackgroundTransparency = 0.2
 		chatBarFrame.BorderSizePixel = 0
 		chatBarFrame.Name = "ChatBarContainer"
-		chatBarFrame.Position = UDim2.new(0, 0, 1, -42)
-		chatBarFrame.Size = UDim2.new(1, 0, 0, 42)
+		chatBarFrame.Position = UDim2.new(0, 0, 1, -46)
+		chatBarFrame.Size = UDim2.new(1, 0, 0, 46)
 		chatBarFrame.Parent = self.Gui
 
 		local input = Instance.new("TextBox")
 		input.BackgroundTransparency = 1
-		input.Font = Enum.Font.GothamBold
+		input.Font = Enum.Font.Nunito
 		input.Name = "userInput"
 		input.Position = UDim2.fromOffset(10, 10)
 		input.Size = UDim2.new(1, -20, 1, -20)
 		input.Text = ""
 		input.TextColor3 = Color3.fromRGB(255, 255, 255)
-		input.TextSize = 15
+		input.TextSize = 18
 		input.TextXAlignment = Enum.TextXAlignment.Left
 		input.Visible = false
 		input.Parent = chatBarFrame
@@ -128,10 +128,10 @@ function BeamchatBase:_construct()
 		previewLabel.BackgroundTransparency = 1
 		previewLabel.Position = UDim2.fromOffset(10, 10)
 		previewLabel.Size = UDim2.new(1, -20, 1, -20)
-		previewLabel.Font = Enum.Font.GothamBold
+		previewLabel.Font = Enum.Font.Nunito
 		previewLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 		previewLabel.RichText = true
-		previewLabel.TextSize = 15
+		previewLabel.TextSize = 18
 		previewLabel.Text = ChatBar:GetChatLabelText()
 		previewLabel.TextXAlignment = Enum.TextXAlignment.Left
 		previewLabel.Name = "previewLabel"

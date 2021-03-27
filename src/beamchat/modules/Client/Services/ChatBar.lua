@@ -20,11 +20,11 @@ function ChatBar.new(gui)
 
 	self._labelSpring = Spring.new()
 	self._labelSpring.s = 35
-	self._labelSpring.d = 0.7
+	self._labelSpring.d = 1
 
 	self._alphaSpring = Spring.new()
-	self._alphaSpring.s = 35
-	self._alphaSpring.d = 0.7
+	self._alphaSpring.s = 30
+	self._alphaSpring.d = 1
 
 	self._label = self.Gui.previewLabel
 	self._input = self.Gui.userInput

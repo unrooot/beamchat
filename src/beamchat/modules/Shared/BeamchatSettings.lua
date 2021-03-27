@@ -1,9 +1,9 @@
 local BeamchatSettings = {}
 
 BeamchatSettings._settings = {
-	CHATBAR_LABEL_TEXT = "press / or click here to start typing";
+	CHATBAR_LABEL_TEXT = "press / to start typing";
 	CHATBAR_LABEL_TEXT_MOBILE = "tap here to start typing";
-	HIDE_AFTER_SECONDS = 3;
+	HIDE_AFTER_SECONDS = 2;
 
 	-- CHAT_FONT = Enum.Font.GothamBold; -- Changes the default font of the chat.
 	-- CHAT_LABEL_OFFSET = UDim2.new(0, 0, 0, 2); -- Optional offset for message labels. Useful for fonts that aren't centered. Set to UDim2.new() if not using.

@@ -10,12 +10,12 @@ local ChatBody = setmetatable({}, BasicPane)
 ChatBody.__index = ChatBody
 
 function ChatBody.new(gui)
-	assert(gui, "[ChatBody] Gui expected!")
+	assert(gui, "[ChatBody]: Gui expected!")
 	local self = setmetatable(BasicPane.new(gui), ChatBody)
 
 	self._alphaSpring = Spring.new()
-	self._alphaSpring.s = 35
-	self._alphaSpring.d = 0.7
+	self._alphaSpring.s = 30
+	self._alphaSpring.d = 1
 
 	self._maid:GiveTask(self.VisibleChanged:Connect(function(isVisible, doNotAnimate)
 		self._alphaSpring.t = isVisible and 1 or 0
